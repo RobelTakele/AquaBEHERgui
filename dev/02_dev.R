@@ -54,7 +54,7 @@ usethis::use_test("AquaBEHERgui")
 usethis::use_github()
 
 # GitHub Actions
-usethis::use_pkgdown(config_file = "_pkgdown.yml", destdir = "docs")
+usethis::use_pkgdown()
 usethis::use_github_action("pkgdown")
 usethis::use_pkgdown_github_pages( )
 

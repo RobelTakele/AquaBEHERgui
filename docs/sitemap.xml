@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://robeltakele.github.io/AquaBEHERgui/404.html</loc>
+    <loc>/404.html</loc>
   </url>
   <url>
-    <loc>https://robeltakele.github.io/AquaBEHERgui/LICENSE.html</loc>
+    <loc>/LICENSE.html</loc>
   </url>
   <url>
-    <loc>https://robeltakele.github.io/AquaBEHERgui/authors.html</loc>
+    <loc>/authors.html</loc>
   </url>
   <url>
-    <loc>https://robeltakele.github.io/AquaBEHERgui/index.html</loc>
+    <loc>/index.html</loc>
   </url>
   <url>
-    <loc>https://robeltakele.github.io/AquaBEHERgui/news/index.html</loc>
+    <loc>/news/index.html</loc>
   </url>
   <url>
-    <loc>https://robeltakele.github.io/AquaBEHERgui/reference/index.html</loc>
+    <loc>/reference/index.html</loc>
   </url>
   <url>
-    <loc>https://robeltakele.github.io/AquaBEHERgui/reference/rcn.html</loc>
+    <loc>/reference/rcn.html</loc>
   </url>
   <url>
-    <loc>https://robeltakele.github.io/AquaBEHERgui/reference/run_app.html</loc>
+    <loc>/reference/run_app.html</loc>
   </url>
 </urlset>
