@@ -8,3 +8,9 @@ $run_dev.*
 ^README\.Rmd$
 ^packrat/
 ^\.Rprofile$
+^app\.R$
+^rsconnect$
+^\.github$
+^codecov\.yml$
+^Makefile$
+^Jenkinsfile$

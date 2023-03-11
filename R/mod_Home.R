@@ -16,7 +16,7 @@ mod_Home_ui <- function(id){
   tagList(
                     fluidPage(
 
-                  #    shinyjs::useShinyjs(),
+                  #  shinyjs::useShinyjs(),
 
                       tags$button(
                         id = 'close',
@@ -34,13 +34,13 @@ mod_Home_ui <- function(id){
                              br(), br(), br(), br(),
 
                              imageOutput("home_img")
-                      ),
+                      )
 
-                      column(12,
+                      # column(12,
+                      #
+                      # ),
 
-                      ),
-
-                      uiOutput('markdown')
+                    #  uiOutput('markdown')
                     )
 
   )
@@ -62,7 +62,7 @@ mod_Home_server <- function(id){
     }, deleteFile = F)
 
     output$markdown <- renderUI({
-      withMathJax(HTML(readLines(rmarkdown::render(input = "R/Home.md",
+      withMathJax(HTML(readLines(rmarkdown::render(input = "Home.md",
                                                    output_format = rmarkdown::html_fragment(),
                                                    quiet = TRUE
       ))))

@@ -3,7 +3,7 @@
 #
 #     AquaBEHERgui Shiny App Development Workflow.
 #
-#     Copyright (C) 2022 Center of Plant Sciences, Scuola Superiore Sant’Anna (http://www.capitalisegenetics.santannapisa.it)
+#     Copyright (C) 2022 Center of Plant Sciences, Scuola Superiore Sant???Anna (http://www.capitalisegenetics.santannapisa.it)
 #
 ################################################################################################################################
 
@@ -36,7 +36,7 @@ usethis::use_readme_rmd()
 usethis::use_lifecycle_badge("Experimental")
 usethis::use_news_md(open = FALSE)
 # usethis::use_data_raw()
-golem::use_recommended_deps(recommended = c("shiny","htmltools","golem", "rmarkdown", "shinyWidgets", "plotly", "leaflet"))
+golem::use_recommended_deps(recommended = c("shiny","htmltools","golem", "rmarkdown", "shinyWidgets", "plotly", "leaflet", "raster"))
 
 ## Init Testing Infrastructure ----
 ## Create a template for tests
@@ -50,8 +50,8 @@ golem::use_utils_server(with_test = TRUE)
 golem::use_favicon("inst/app/www/AquaBEHERicon.png")
 # golem::remove_favicon() # Uncomment to remove the default favicon
 
-## Add a lib folder
- usethis::use_directory("inst/applibs/", ignore = FALSE)
+## Add a lib and data folder
+ usethis::use_directory("inst/app/libs/", ignore = FALSE)
 
 ## Use git ----
 usethis::use_git()

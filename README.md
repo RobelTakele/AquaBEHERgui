@@ -1,29 +1,22 @@
----
-output: github_document
----
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.path = "man/figures/README-",
-  out.width = "100%"
-)
-```
 
 # AquaBEHERgui <img src="inst/app/www/AquaBEHER.png" align="right" height=120/>
 
 <!-- badges: start -->
-[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+
+[![Lifecycle:
+experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![R-CMD-check](https://github.com/RobelTakele/AquaBEHERgui/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/RobelTakele/AquaBEHERgui/actions/workflows/R-CMD-check.yaml)
-[![Codecov test coverage](https://codecov.io/gh/RobelTakele/AquaBEHERgui/branch/master/graph/badge.svg)](https://app.codecov.io/gh/RobelTakele/AquaBEHERgui?branch=master)
-[![Project Status: Active ??? The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+[![Codecov test
+coverage](https://codecov.io/gh/RobelTakele/AquaBEHERgui/branch/master/graph/badge.svg)](https://app.codecov.io/gh/RobelTakele/AquaBEHERgui?branch=master)
+[![Project Status: Active ??? The project has reached a stable, usable
+state and is being actively
+developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 <!-- badges: end -->
 
-A shiny GUI app used to compute and visualize soil-water balance 
-and wet-season calendar parameters. The app computes and integrates daily
+A shiny GUI app used to compute and visualize soil-water balance and
+wet-season calendar parameters. The app computes and integrates daily
 potential evapotranspiration (PET) into a daily soil-water balance model
 to estimate the calendar of a wet-season for agricultural applications.
 
@@ -52,7 +45,7 @@ Install R and the required packages:
   devtools::install_github("RobelTakele/AquaBEHERgui")
   
 ```
-  
+
 ## Usage
 
 To launch the App on your computer:
@@ -62,8 +55,8 @@ To launch the App on your computer:
  AquaBEHERgui::run_app()
  
 ```
-To launch th App directly hosted from GitHub repo:
 
+To launch th App directly hosted from GitHub repo:
 
 ``` r
 
@@ -81,13 +74,13 @@ details.
 <img align="right" width="300" src="http://www.capitalisegenetics.santannapisa.it/sites/default/files/u65/Logo%20plant%20sciences.png">
 
 The AquaBEHERgui app is maintained by The Center of Plant Sciences Group
-at Scuola Superiore Sant\'Anna, Pisa, Italy.
+at Scuola Superiore Sant'Anna, Pisa, Italy.
 
 The **Center of Plant Sciences Group** is a geographically and
 culturally diverse research team working on climate and crop genetics at
-**Scuola Superiore Sant\'Anna**, Pisa, Italy.
+**Scuola Superiore Sant'Anna**, Pisa, Italy.
 
-You can contact us sending an email to Matteo Dell\'Acqua
+You can contact us sending an email to Matteo Dell'Acqua
 (<a href="mailto:m.dellacqua@santannapisa.it"
 class="uri">mailto:m.dellacqua@santannapisa.it</a>) or Mario Enrico Pe\`
 (<a href="mailto:m.pe@santannapisa.it"
