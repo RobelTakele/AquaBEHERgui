@@ -10,7 +10,6 @@
 ###################################
 #### CURRENT FILE: DEV SCRIPT #####
 ###################################
-
 # Engineering
 
 ## Dependencies ----
@@ -18,10 +17,39 @@
 ## install.packages('attachment') # if needed.
 attachment::att_amend_desc()
 
-## Add modules ----
+## Add internal datasets ----
+usethis::use_data_raw(name = "rcn", open = FALSE)
+rcn <- raster::raster("../ExampleData/af_rcn_5km.tif")
+save(rcn, file="data-raw/rcn.rda")
+usethis::use_data(rcn, internal = TRUE, overwrite = TRUE)
+
+#######################################################################################
+## ***** Add modules ----
 ## Create a module infrastructure in R/
-golem::add_module(name = "name_of_module1", with_test = TRUE) # Name of the module
-golem::add_module(name = "name_of_module2", with_test = TRUE) # Name of the module
+
+golem::add_module(name = 'Home', with_test = TRUE)
+golem::add_module(name = 'locPET', with_test = TRUE)
+golem::add_module(name = 'spPET', with_test = TRUE)
+golem::add_module(name = 'locSWB', with_test = TRUE)
+golem::add_module(name = 'spSWB', with_test = TRUE)
+golem::add_module(name = 'locWSC', with_test = TRUE)
+golem::add_module(name = 'spWSC', with_test = TRUE)
+
+## Tests ----
+## Add one line by test you want to create
+usethis::use_test("AquaBEHERgui")
+
+## CI ----
+usethis::use_github()
+
+# GitHub Actions
+usethis::use_github_action("pkgdown")
+
+# Chose one of the three
+usethis::use_github_action_check_standard()
+
+###################################################################################################
+###################################################################################################
 
 ## Add helper functions ----
 ## Creates fct_* and utils_*

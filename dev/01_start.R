@@ -36,8 +36,8 @@ usethis::use_readme_rmd()
 usethis::use_lifecycle_badge("Experimental")
 usethis::use_news_md(open = FALSE)
 # usethis::use_data_raw()
-golem::use_recommended_deps(recommended = c("shiny","DT","attempt","glue","htmltools","golem", "shinyjs",
-                                            "rmarkdown", "shinyWidgets", "plotly", "leaflet"))
+golem::use_recommended_deps(recommended = c("shiny","htmltools","golem", "rmarkdown", "shinyWidgets", "plotly", "leaflet"))
+
 ## Init Testing Infrastructure ----
 ## Create a template for tests
 golem::use_recommended_tests()
@@ -51,7 +51,7 @@ golem::use_favicon("inst/app/www/AquaBEHERicon.png")
 # golem::remove_favicon() # Uncomment to remove the default favicon
 
 ## Add a lib folder
-# usethis::use_directory("inst/libs/AquaBEHER/", ignore = FALSE)
+ usethis::use_directory("inst/applibs/", ignore = FALSE)
 
 ## Use git ----
 usethis::use_git()

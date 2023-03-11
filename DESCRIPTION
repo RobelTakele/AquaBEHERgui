@@ -4,22 +4,16 @@ Version: 0.1.0
 Author: Robel Takele <takelerobel@gmail.com>
         Matteo Dell'Acqua <matteo.dellacqua@santannapisa.it> 
 Maintainer: Robel Takele <takelerobel@gmail.com>
-Description: A shiny GUI app used to compute and visualize soil-water balance and wet-season calendar parameters.
-             The app computes and integrates daily potential evapotranspiration (PET) into a daily soil-water balance model 
-             to estimate the calendar of a wet-season for agricultural applications.
+Description: A shiny GUI app used to compute and visualize soil-water balance and wet-season calendar parameters. The app computes and integrates daily potential evapotranspiration (PET) into a daily soil-water balance model to estimate the calendar of a wet-season for agricultural applications.
 License: CC BY 4.0
 Imports: 
-    attempt,
     config (>= 0.3.1),
-    DT,
-    glue,
     golem (>= 0.3.5.9001),
     htmltools,
     leaflet,
     plotly,
     rmarkdown,
     shiny (>= 1.7.4),
-    shinyjs,
     shinyWidgets
 Encoding: UTF-8
 LazyData: true
@@ -31,3 +25,5 @@ Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Language: en-US
+Depends: 
+    R (>= 2.10)
