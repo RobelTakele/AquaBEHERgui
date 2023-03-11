@@ -12,8 +12,12 @@
 #
 # ------------------------------------------------
 
-AquaBEHER.packages <- c("devtools","htmltools", "htmlwidgets", "shinyjs", "shinythemes", "shinyWidgets", "rmarkdown", "markdown",
-                        "packrat")
+AquaBEHER.packages <- c("devtools", "bslib", "data.table",  "doParallel", "DT", "fontawesome",
+                        "fs", "ggplot2", "htmltools", "htmlwidgets", "leafem", "leaflet", "leaflet.extras",
+                        "leaflet.extras2", "leaflet.multiopacity", "leaflet.opacity", "lubridate", "mapboxapi",
+                        "mapview", "markdown", "ncdf4", "OpenStreetMap", "openxlsx", "periscope", "packrat", "pals", "plotly", "raster",
+                        "rgdal", "rmarkdown", "shiny", "shinyalert", "shinyBS", "shinydlplot", "shinyFiles", "shinyjs", "shinythemes",
+                        "shinyWidgets", "snow", "sp", "terra")
 
 print("",quote=FALSE)
 print("Checking for required R packages.",quote=FALSE)
@@ -29,7 +33,7 @@ for (package in 1:length(AquaBEHER.packages)) {
 
     print(paste(AquaBEHER.packages[package],"... installed.",sep=""),quote=FALSE)
 
-  } else { print(paste(AquaBEHER.packages[package],"... not installed. Installing...",sep=""),quote=FALSE)
+  } else { print(paste(AquaBEHER.packages[package],sep=""),quote=FALSE)
 
     install.packages(AquaBEHER.packages[package], repos = "http://cran.us.r-project.org")}
 }
@@ -57,7 +61,7 @@ for (package in 1:length(AquaBEHERgui.packages)) {
     print(paste(AquaBEHERgui.packages[package],"... installed.",sep=""),quote=FALSE)
 
   } else { print(paste(AquaBEHERgui.packages[package],"... not installed. Installing...",sep=""),quote=FALSE)
-    packrat::install_local(AquaBEHERgui.packages[package], args = getOption("--no-staged-install"))
+    packrat::install_local(AquaBEHERgui.packages[package])
 
   }
 
@@ -85,7 +89,8 @@ col.vec <- c("#0000FF","#FF0000","#00FF00","#000033","#FF00B6","#005300","#FFD30
                       "#209eab", "#20ab81")
 
 
-
+spPETmetNam <- c("Hargreaves-Samani", "Priestley-Taylor", "Penman-Monteith")
+spPETmetNamS <- c("HS", "PT", "PM")
 
 
 ##################################################################################################################
@@ -112,7 +117,7 @@ app_ui <- function(request) {
 
     navbarMenu("PET",
               tabPanel("From Location Data", mod_locPET_ui("locPET_1")),
-              tabPanel("From Gridded Data"))
+              tabPanel("From Gridded Data", mod_spPET_ui("spPET_1")))
 
 
     )

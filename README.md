@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# AquaBEHERgui <img src="inst/app/www/AquaBEHER.png" align="right" height=120/>
+# AquaBEHERgui <img src="man/figures/AquaBEHER.png" align="right" height=120/>
 
 <!-- badges: start -->
 

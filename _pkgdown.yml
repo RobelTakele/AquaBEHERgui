@@ -1,4 +1,6 @@
+title: AquaBEHER
 url: https://robeltakele.github.io/AquaBEHERgui/
 template:
-  bootstrap: 5
+  params:
+    bootswatch: spacelab
 

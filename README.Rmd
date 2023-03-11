@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# AquaBEHERgui <img src="inst/app/www/AquaBEHER.png" align="right" height=120/>
+# AquaBEHERgui <img src="man/figures/AquaBEHER.png" align="right" height=120/>
 
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
