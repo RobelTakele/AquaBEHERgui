@@ -14,3 +14,6 @@ $run_dev.*
 ^codecov\.yml$
 ^Makefile$
 ^Jenkinsfile$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
