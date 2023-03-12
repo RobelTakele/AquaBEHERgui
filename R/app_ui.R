@@ -47,7 +47,7 @@ print("Checking complete.",quote=FALSE)
 
 library(packrat)
 
-# # ***** packrat integration
+ # ***** packrat integration
 
 packrat::set_opts(local.repos = c("inst/app/libs"))
 
@@ -67,7 +67,6 @@ for (package in 1:length(AquaBEHERgui.packages)) {
 
 }
 
-# library(AquaBEHER)
 
 ##################################################################################################################
 # ***** Setting Global Variables
@@ -92,6 +91,33 @@ col.vec <- c("#0000FF","#FF0000","#00FF00","#000033","#FF00B6","#005300","#FFD30
 spPETmetNam <- c("Hargreaves-Samani", "Priestley-Taylor", "Penman-Monteith")
 spPETmetNamS <- c("HS", "PT", "PM")
 
+SWBplot_type <- c('scatter', 'bar')
+SWBplot_Yvar <- c("Rain", "R", "AVAIL", "TRAN", "DRAIN", "RUNOFF")
+locSWBplot_Ynames <-  c("Rain", "R", "AVAIL", "TRAN", "DRAIN", "RUNOFF")
+locSWBplot_titles <- c("Rainfall (mm)", "R-index", "Soil-moisture (mm)", "Transpiration (mm)", "Drainage (mm)", "Runoff (mm)")
+
+spSWBparVal <- 1:5
+spSWBparNam <- c("DRAIN", "TRAN", "RUNOFF", "AVAIL", "R")
+spSWBlegTitle <- c("Drainage (mm)", "Transpiration (mm)", "Runoff (mm)", "Moisture (mm)", "R-index")
+spSWBcolPal <- list(rev(pals::linearl(100)), rev(pals::viridis(100)), rev(pals::ocean.haline(100)),
+                    rev(pals::cubicl(100)), pals::brewer.spectral(12))
+
+WSCplot_Yvar <- c("onset.Value", "cessation.Value", "Duration")
+
+WSCcolVec <- c("#0000FF","#FF0000","#00FF00","#000033","#FF00B6","#005300","#FFD300","#009FFF","#9A4D42","#00FFBE",
+                        "#783FC1","steelblue","cornflowerblue","firebrick", "palegoldenrod", "violet","forestgreen", "aquamarine",
+                        "dimgray", "pink", "lavender",  "magenta", "navy", "#5A5156", "#E4E1E3", "#F6222E","#FE00FA", "#16FF32",
+                        "#3283FE","#FEAF16","#B00068","#1CFFCE", "#90AD1C","#2ED9FF", "#DEA0FD", "#AA0DFE","#F8A19F","#325A9B",
+                        "#C4451C","#1C8356", "#85660D","#B10DA1","#FBE426", "#1CBE4F", "#FA0087", "#FC1CBF", "#F7E1A0", "#C075A6",
+                        "#782AB6", "#AAF400","#BDCDFF","#822E1C","#B5EFB5", "#7ED7D1", "#1C7F93", "#D85FF7", "#683B79","#66B0FF",
+                        "#209eab", "#20ab81")
+
+WSCplot_Yvar <- c("onset.Value", "cessation.Value", "Duration")
+WSCplot_Ynames <- c("Days since start of onset window", "Days since start of onset window", "No. of days from onset to cessation")
+
+spWSClegTitle <- c("Onset (DOY)", "Cessation (DOY)", "Duration (Days)")
+
+spWSCcolPal  <- list(rev(pals::viridis(100)), rev(pals::cubicl(100)), rev(pals::cubicl(100)))
 
 ##################################################################################################################
 ##################################################################################################################
@@ -117,8 +143,15 @@ app_ui <- function(request) {
 
     navbarMenu("PET",
               tabPanel("From Location Data", mod_locPET_ui("locPET_1")),
-              tabPanel("From Gridded Data", mod_spPET_ui("spPET_1")))
+              tabPanel("From Gridded Data", mod_spPET_ui("spPET_1"))),
 
+    navbarMenu("Water Balance",
+               tabPanel("From Location Data", mod_locSWB_ui("locSWB_1")),
+               tabPanel("From Gridded Data", mod_spSWB_ui("spSWB_1"))),
+
+    navbarMenu("Seasonal Calendar",
+               tabPanel("From Location Data", mod_locWSC_ui("locWSC_1")),
+               tabPanel("From Gridded Data", mod_spWSC_ui("spWSC_1")))
 
     )
   )

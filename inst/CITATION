@@ -1,0 +1,17 @@
+citHeader("To cite AquaBEHERgui in publications use:")
+
+bibentry(
+  bibtype = "Manual",
+  title = "A shiny GUI app for estimation of wet-season calendar parameters",
+  author = c(as.person("Robel Takele"), as.person("Matteo Dell'Acqua")),
+  year = "2023",
+  note = "R package version 0.1.0",
+  url = "https://robeltakele.github.io/AquaBEHERgui/",
+
+  textVersion =
+    paste("Robel Takele, Matteo Dell'Acqua (2023).",
+      "A shiny GUI app for estimation of wet-season calendar parameters.",
+      "R package version 0.1.0",
+      "URL https://robeltakele.github.io/AquaBEHERgui/"
+    )
+)

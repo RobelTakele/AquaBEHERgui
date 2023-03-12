@@ -1,33 +1,23 @@
 Package: AquaBEHERgui
 Title: A shiny GUI app for estimation of wet-season calendar parameters
 Version: 0.1.0
-Author: Robel Takele <takelerobel@gmail.com>
-        Matteo Dell'Acqua <matteo.dellacqua@santannapisa.it> 
+Author: Robel Takele <takelerobel@gmail.com> Matteo Dell'Acqua <matteo.dellacqua@santannapisa.it>
 Maintainer: Robel Takele <takelerobel@gmail.com>
-Description: A shiny GUI app used to compute and visualize soil-water balance and wet-season calendar parameters. The app computes and integrates daily potential evapotranspiration (PET) into a daily soil-water balance model to estimate the calendar of a wet-season for agricultural applications.
+Description: A shiny GUI app used to compute and visualize soil-water balance and wet-season calendar 
+             parameters. The app computes and integrates daily potential evapotranspiration (PET) 
+             into a daily soil-water balance model to estimate the calendar of a wet-season for 
+             agricultural applications.
 License: CC BY 4.0
-Imports: 
-    config (>= 0.3.1),
-    golem (>= 0.3.5.9001),
-    htmltools,
-    leaflet,
-    pkgload,
-    plotly,
-    raster,
-    rmarkdown,
-    shiny (>= 1.7.4),
-    shinyWidgets
+Imports: config (>= 0.3.1), golem (>= 0.3.5.9001), DT, htmltools, leaflet, pkgload, plotly, raster, rmarkdown, foreach, methods,
+              periscope, shiny (>= 1.7.4), shinyjs, shinyWidgets, shinyBS, shinyFiles
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.3
 URL: https://github.com/RobelTakele/AquaBEHERgui,
     https://robeltakele.github.io/AquaBEHERgui/
 BugReports: https://github.com/RobelTakele/AquaBEHERgui/issues
-Suggests: 
-    covr,
-    spelling,
-    testthat (>= 3.0.0)
+Suggests: covr, spelling, testthat (>= 3.0.0),knitr
 Config/testthat/edition: 3
 Language: en-US
-Depends: 
-    R (>= 2.10)
+Depends: R (>= 2.10)
+VignetteBuilder: knitr

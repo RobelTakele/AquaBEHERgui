@@ -63,7 +63,7 @@ mod_spPET_ui <- function(id){
 
 
                  numericInput(inputId = "ResInput",
-                              label = "Set horizontal resolution in decimal degrees (º) ",
+                              label = "Set horizontal resolution in decimal degrees (\u00B0) ",
                               value = 0.0833,
                               min = 0.001,
                               max = 2,

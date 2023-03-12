@@ -5,3 +5,6 @@
 .DS_Store
 packrat/lib*/
 docs
+inst/doc
+/doc/
+/Meta/

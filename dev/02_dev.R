@@ -70,6 +70,7 @@ usethis::use_coverage()
 
 # Create a summary readme for the testthat subdirectory
 covrpage::covrpage()
+covrpage::use_covrpage_vignette()
 
 # Jenkins
 usethis::use_jenkins()
@@ -91,6 +92,8 @@ golem::add_sass_file("custom")
 ## Vignette ----
 usethis::use_vignette("AquaBEHERgui")
 devtools::build_vignettes()
+
+usethis::use_citation()
 
 # # Travis CI
 # usethis::use_travis()
