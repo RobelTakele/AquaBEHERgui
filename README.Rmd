@@ -18,8 +18,8 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![R-CMD-check](https://github.com/RobelTakele/AquaBEHERgui/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/RobelTakele/AquaBEHERgui/actions/workflows/R-CMD-check.yaml)
-[![Codecov test coverage](https://codecov.io/gh/RobelTakele/AquaBEHERgui/branch/master/graph/badge.svg)](https://app.codecov.io/gh/RobelTakele/AquaBEHERgui?branch=master)
 [![Project Status: Active ??? The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+[![workflow for Codecov](https://github.com/RobelTakele/AquaBEHERgui/actions/workflows/Codecov.yml/badge.svg?branch=master)](https://github.com/RobelTakele/AquaBEHERgui/actions/workflows/Codecov.yml)
 <!-- badges: end -->
 
 A shiny GUI app used to compute and visualize soil-water balance 
