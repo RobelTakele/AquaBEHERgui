@@ -1,0 +1,102 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# AquaBEHERgui 
+
+<!-- badges: start -->
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![R-CMD-check](https://github.com/RobelTakele/AquaBEHERgui/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/RobelTakele/AquaBEHERgui/actions/workflows/R-CMD-check.yaml)
+[![Project Status: Active ??? The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+[![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/RobelTakele/AquaBEHERgui?branch=master&svg=true)](https://ci.appveyor.com/project/RobelTakele/AquaBEHERgui)
+[![workflow for Codecov](https://github.com/RobelTakele/AquaBEHERgui/actions/workflows/Codecov.yml/badge.svg?branch=master)](https://github.com/RobelTakele/AquaBEHERgui/actions/workflows/Codecov.yml)
+<!-- badges: end -->
+
+A shiny GUI app used to compute and visualize soil-water balance 
+and wet-season calendar parameters. The app computes and integrates daily
+potential evapotranspiration (PET) into a daily soil-water balance model
+to estimate the calendar of a wet-season for agricultural applications.
+
+## Installation
+
+You can install the development version of AquaBEHERgui from
+[GitHub](https://github.com/) with:
+
+``` r
+Install R and the required packages:
+
+    R >= 3.6
+
+    RStudio
+
+    R packages: devtools, shiny, 
+
+    To install the above packages, in the R console, run:
+
+    install.packages("shiny")
+
+# Get devtools package:
+  install.packages("devtools")
+  
+# Install the development version of AquaBEHERgui from [GitHub](https://github.com/RobelTakele/AquaBEHERgui):
+  devtools::install_github("RobelTakele/AquaBEHERgui")
+  
+```
+  
+## Usage
+
+To launch the App on your computer:
+
+``` r
+
+ AquaBEHERgui::run_app()
+ 
+```
+To launch th App directly hosted from GitHub repo:
+
+
+``` r
+
+shiny::runGitHub("AquaBEHERgui", "RobelTakele")
+ 
+```
+
+## License
+
+The AquaBEHERgui app is licensed under the CC BY 4.0. See LICENSE for
+details.
+
+\`\`\`
+
+<img align="right" width="300" src="http://www.capitalisegenetics.santannapisa.it/sites/default/files/u65/Logo%20plant%20sciences.png">
+
+The AquaBEHERgui app is maintained by The Center of Plant Sciences Group
+at Scuola Superiore Sant\'Anna, Pisa, Italy.
+
+The **Center of Plant Sciences Group** is a geographically and
+culturally diverse research team working on climate and crop genetics at
+**Scuola Superiore Sant\'Anna**, Pisa, Italy.
+
+You can contact us sending an email to Matteo Dell\'Acqua
+(<a href="mailto:m.dellacqua@santannapisa.it"
+class="uri">mailto:m.dellacqua@santannapisa.it</a>) or Mario Enrico Pe\`
+(<a href="mailto:m.pe@santannapisa.it"
+class="uri">mailto:m.pe@santannapisa.it</a>). You can also visit the
+crop genetics (<http://www.capitalisegenetics.santannapisa.it/>) web
+page.
+
+We are committed to the [free
+software](https://www.fsf.org/about/what-is-free-software) and
+[FAIR](https://www.go-fair.org/fair-principles/) principles. This set of
+repositories collects our latest developments and provide reusable code.

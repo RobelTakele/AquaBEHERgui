@@ -1,0 +1,27 @@
+url: https://robeltakele.github.io/AquaBEHERgui/
+template:
+  bootstrap: 5
+  bootswatch: cosmo
+  bslib:
+    pkgdown-nav-height: 100px
+
+navbar:
+  title: AquaBEHERgui
+  type: default
+  left:
+  - icon: fa-home fa-lg
+    href: index.html
+  - text: Functions
+    href: reference/index.html
+  - text: User Guide
+    menu:
+    - text: Getting Started
+    - text: PET
+    - text: SWB
+    - text: WSC
+  - text: News
+    href: news/index.html
+
+
+
+
