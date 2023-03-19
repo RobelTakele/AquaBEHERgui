@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Tests and Coverage</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Tests and Coverage</h1>
+<h4 class="date">17 March, 2023 15:51:13</h4>
+
+
+
+<!--- Placeholder for tests/README.md Do Not Edit--->
+<ul>
+<li><a href="#coverage" id="toc-coverage">Coverage</a></li>
+<li><a href="#unit-tests" id="toc-unit-tests">Unit Tests</a></li>
+</ul>
+<p>This output is created by <a href="https://github.com/yonicd/covrpage">covrpage</a>.</p>
+<div id="coverage" class="section level2">
+<h2>Coverage</h2>
+<p>Coverage summary is created using the <a href="https://github.com/r-lib/covr">covr</a> package.</p>
+<table>
+<colgroup>
+<col width="79%" />
+<col width="20%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Object</th>
+<th align="center">Coverage (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">AquaBEHERgui</td>
+<td align="center">55.97</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.com/RobelTakele/AquaBEHERgui/blob/master/R/run_app.R">R/run_app.R</a></td>
+<td align="center">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.com/RobelTakele/AquaBEHERgui/blob/master/R/app_server.R">R/app_server.R</a></td>
+<td align="center">22.73</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.com/RobelTakele/AquaBEHERgui/blob/master/R/golem_utils_server.R">R/golem_utils_server.R</a></td>
+<td align="center">77.78</td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.com/RobelTakele/AquaBEHERgui/blob/master/R/mod_Home.R">R/mod_Home.R</a></td>
+<td align="center">78.12</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.com/RobelTakele/AquaBEHERgui/blob/master/R/golem_utils_ui.R">R/golem_utils_ui.R</a></td>
+<td align="center">87.94</td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.com/RobelTakele/AquaBEHERgui/blob/master/R/app_config.R">R/app_config.R</a></td>
+<td align="center">100.00</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.com/RobelTakele/AquaBEHERgui/blob/master/R/app_ui.R">R/app_ui.R</a></td>
+<td align="center">100.00</td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.com/RobelTakele/AquaBEHERgui/blob/master/R/mod_locPET.R">R/mod_locPET.R</a></td>
+<td align="center">100.00</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.com/RobelTakele/AquaBEHERgui/blob/master/R/mod_locSWB.R">R/mod_locSWB.R</a></td>
+<td align="center">100.00</td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.com/RobelTakele/AquaBEHERgui/blob/master/R/mod_locWSC.R">R/mod_locWSC.R</a></td>
+<td align="center">100.00</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.com/RobelTakele/AquaBEHERgui/blob/master/R/mod_spPET.R">R/mod_spPET.R</a></td>
+<td align="center">100.00</td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.com/RobelTakele/AquaBEHERgui/blob/master/R/mod_spSWB.R">R/mod_spSWB.R</a></td>
+<td align="center">100.00</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.com/RobelTakele/AquaBEHERgui/blob/master/R/mod_spWSC.R">R/mod_spWSC.R</a></td>
+<td align="center">100.00</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+</div>
+<div id="unit-tests" class="section level2">
+<h2>Unit Tests</h2>
+<p>Unit Test summary is created using the <a href="https://github.com/r-lib/testthat">testthat</a> package.</p>
+<table style="width:100%;">
+<colgroup>
+<col width="56%" />
+<col width="4%" />
+<col width="6%" />
+<col width="6%" />
+<col width="6%" />
+<col width="7%" />
+<col width="7%" />
+<col width="5%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">file</th>
+<th align="right">n</th>
+<th align="right">time</th>
+<th align="right">error</th>
+<th align="right">failed</th>
+<th align="right">skipped</th>
+<th align="right">warning</th>
+<th align="left">icon</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-AquaBEHERgui.R">test-AquaBEHERgui.R</a></td>
+<td align="right">1</td>
+<td align="right">0.007</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem_utils_server.R">test-golem_utils_server.R</a></td>
+<td align="right">13</td>
+<td align="right">0.094</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem_utils_ui.R">test-golem_utils_ui.R</a></td>
+<td align="right">51</td>
+<td align="right">0.322</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem-recommended.R">test-golem-recommended.R</a></td>
+<td align="right">10</td>
+<td align="right">0.429</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="left">🔶</td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-mod_Home.R">test-mod_Home.R</a></td>
+<td align="right">2</td>
+<td align="right">0.015</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-mod_locPET.R">test-mod_locPET.R</a></td>
+<td align="right">2</td>
+<td align="right">0.075</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-mod_locSWB.R">test-mod_locSWB.R</a></td>
+<td align="right">2</td>
+<td align="right">0.053</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-mod_locWSC.R">test-mod_locWSC.R</a></td>
+<td align="right">2</td>
+<td align="right">0.055</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-mod_spPET.R">test-mod_spPET.R</a></td>
+<td align="right">2</td>
+<td align="right">0.042</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-mod_spSWB.R">test-mod_spSWB.R</a></td>
+<td align="right">2</td>
+<td align="right">0.043</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-mod_spWSC.R">test-mod_spWSC.R</a></td>
+<td align="right">2</td>
+<td align="right">0.045</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="left"></td>
+</tr>
+</tbody>
+</table>
+<details open>
+<summary>
+Show Detailed Test Results
+</summary>
+<table>
+<colgroup>
+<col width="48%" />
+<col width="13%" />
+<col width="21%" />
+<col width="5%" />
+<col width="3%" />
+<col width="4%" />
+<col width="3%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">file</th>
+<th align="left">context</th>
+<th align="left">test</th>
+<th align="left">status</th>
+<th align="right">n</th>
+<th align="right">time</th>
+<th align="left">icon</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-AquaBEHERgui.R#L2">test-AquaBEHERgui.R</a></td>
+<td align="left">AquaBEHERgui</td>
+<td align="left">multiplication works</td>
+<td align="left">PASS</td>
+<td align="right">1</td>
+<td align="right">0.007</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem_utils_server.R#L2">test-golem_utils_server.R</a></td>
+<td align="left">golem_utils_server</td>
+<td align="left">not_in works</td>
+<td align="left">PASS</td>
+<td align="right">2</td>
+<td align="right">0.016</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem_utils_server.R#L7">test-golem_utils_server.R</a></td>
+<td align="left">golem_utils_server</td>
+<td align="left">not_null works</td>
+<td align="left">PASS</td>
+<td align="right">2</td>
+<td align="right">0.015</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem_utils_server.R#L12">test-golem_utils_server.R</a></td>
+<td align="left">golem_utils_server</td>
+<td align="left">not_na works</td>
+<td align="left">PASS</td>
+<td align="right">2</td>
+<td align="right">0.013</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem_utils_server.R#L17_L22">test-golem_utils_server.R</a></td>
+<td align="left">golem_utils_server</td>
+<td align="left">drop_nulls works</td>
+<td align="left">PASS</td>
+<td align="right">1</td>
+<td align="right">0.007</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem_utils_server.R#L26_L29">test-golem_utils_server.R</a></td>
+<td align="left">golem_utils_server</td>
+<td align="left">%||% works</td>
+<td align="left">PASS</td>
+<td align="right">2</td>
+<td align="right">0.014</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem_utils_server.R#L37_L40">test-golem_utils_server.R</a></td>
+<td align="left">golem_utils_server</td>
+<td align="left">%|NA|% works</td>
+<td align="left">PASS</td>
+<td align="right">2</td>
+<td align="right">0.016</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem_utils_server.R#L48_L50">test-golem_utils_server.R</a></td>
+<td align="left">golem_utils_server</td>
+<td align="left">rv and rvtl work</td>
+<td align="left">PASS</td>
+<td align="right">2</td>
+<td align="right">0.013</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem_utils_ui.R#L2">test-golem_utils_ui.R</a></td>
+<td align="left">golem_utils_ui</td>
+<td align="left">Test with_red_star works</td>
+<td align="left">PASS</td>
+<td align="right">2</td>
+<td align="right">0.011</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem_utils_ui.R#L10">test-golem_utils_ui.R</a></td>
+<td align="left">golem_utils_ui</td>
+<td align="left">Test list_to_li works</td>
+<td align="left">PASS</td>
+<td align="right">3</td>
+<td align="right">0.022</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem_utils_ui.R#L22_L28">test-golem_utils_ui.R</a></td>
+<td align="left">golem_utils_ui</td>
+<td align="left">Test list_to_p works</td>
+<td align="left">PASS</td>
+<td align="right">3</td>
+<td align="right">0.024</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem_utils_ui.R#L53">test-golem_utils_ui.R</a></td>
+<td align="left">golem_utils_ui</td>
+<td align="left">Test named_to_li works</td>
+<td align="left">PASS</td>
+<td align="right">3</td>
+<td align="right">0.023</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem_utils_ui.R#L66">test-golem_utils_ui.R</a></td>
+<td align="left">golem_utils_ui</td>
+<td align="left">Test tagRemoveAttributes works</td>
+<td align="left">PASS</td>
+<td align="right">4</td>
+<td align="right">0.019</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem_utils_ui.R#L82">test-golem_utils_ui.R</a></td>
+<td align="left">golem_utils_ui</td>
+<td align="left">Test undisplay works</td>
+<td align="left">PASS</td>
+<td align="right">8</td>
+<td align="right">0.040</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem_utils_ui.R#L110">test-golem_utils_ui.R</a></td>
+<td align="left">golem_utils_ui</td>
+<td align="left">Test display works</td>
+<td align="left">PASS</td>
+<td align="right">4</td>
+<td align="right">0.020</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem_utils_ui.R#L124">test-golem_utils_ui.R</a></td>
+<td align="left">golem_utils_ui</td>
+<td align="left">Test jq_hide works</td>
+<td align="left">PASS</td>
+<td align="right">2</td>
+<td align="right">0.009</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem_utils_ui.R#L132">test-golem_utils_ui.R</a></td>
+<td align="left">golem_utils_ui</td>
+<td align="left">Test rep_br works</td>
+<td align="left">PASS</td>
+<td align="right">2</td>
+<td align="right">0.010</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem_utils_ui.R#L140">test-golem_utils_ui.R</a></td>
+<td align="left">golem_utils_ui</td>
+<td align="left">Test enurl works</td>
+<td align="left">PASS</td>
+<td align="right">2</td>
+<td align="right">0.012</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem_utils_ui.R#L148">test-golem_utils_ui.R</a></td>
+<td align="left">golem_utils_ui</td>
+<td align="left">Test columns wrappers works</td>
+<td align="left">PASS</td>
+<td align="right">16</td>
+<td align="right">0.117</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem_utils_ui.R#L172">test-golem_utils_ui.R</a></td>
+<td align="left">golem_utils_ui</td>
+<td align="left">Test make_action_button works</td>
+<td align="left">PASS</td>
+<td align="right">2</td>
+<td align="right">0.015</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem-recommended.R#L3">test-golem-recommended.R</a></td>
+<td align="left">golem-recommended</td>
+<td align="left">app ui</td>
+<td align="left">PASS</td>
+<td align="right">2</td>
+<td align="right">0.385</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem-recommended.R#L13">test-golem-recommended.R</a></td>
+<td align="left">golem-recommended</td>
+<td align="left">app server</td>
+<td align="left">PASS</td>
+<td align="right">4</td>
+<td align="right">0.018</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem-recommended.R#L24_L26">test-golem-recommended.R</a></td>
+<td align="left">golem-recommended</td>
+<td align="left">app_sys works</td>
+<td align="left">PASS</td>
+<td align="right">1</td>
+<td align="right">0.009</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem-recommended.R#L36_L42">test-golem-recommended.R</a></td>
+<td align="left">golem-recommended</td>
+<td align="left">golem-config works</td>
+<td align="left">PASS</td>
+<td align="right">2</td>
+<td align="right">0.013</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-golem-recommended.R#L72">test-golem-recommended.R</a></td>
+<td align="left">golem-recommended</td>
+<td align="left">app launches</td>
+<td align="left">SKIPPED</td>
+<td align="right">1</td>
+<td align="right">0.004</td>
+<td align="left">🔶</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-mod_Home.R#L31">test-mod_Home.R</a></td>
+<td align="left">mod_Home</td>
+<td align="left">module ui works</td>
+<td align="left">PASS</td>
+<td align="right">2</td>
+<td align="right">0.015</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-mod_locPET.R#L31">test-mod_locPET.R</a></td>
+<td align="left">mod_locPET</td>
+<td align="left">module ui works</td>
+<td align="left">PASS</td>
+<td align="right">2</td>
+<td align="right">0.075</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-mod_locSWB.R#L31">test-mod_locSWB.R</a></td>
+<td align="left">mod_locSWB</td>
+<td align="left">module ui works</td>
+<td align="left">PASS</td>
+<td align="right">2</td>
+<td align="right">0.053</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-mod_locWSC.R#L31">test-mod_locWSC.R</a></td>
+<td align="left">mod_locWSC</td>
+<td align="left">module ui works</td>
+<td align="left">PASS</td>
+<td align="right">2</td>
+<td align="right">0.055</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-mod_spPET.R#L31">test-mod_spPET.R</a></td>
+<td align="left">mod_spPET</td>
+<td align="left">module ui works</td>
+<td align="left">PASS</td>
+<td align="right">2</td>
+<td align="right">0.042</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-mod_spSWB.R#L31">test-mod_spSWB.R</a></td>
+<td align="left">mod_spSWB</td>
+<td align="left">module ui works</td>
+<td align="left">PASS</td>
+<td align="right">2</td>
+<td align="right">0.043</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.chttps://github.com/RobelTakele/AquaBEHERgui/blob/master/RobelTakele/AquaBEHERgui/blob/master/tests/testthat/test-mod_spWSC.R#L31">test-mod_spWSC.R</a></td>
+<td align="left">mod_spWSC</td>
+<td align="left">module ui works</td>
+<td align="left">PASS</td>
+<td align="right">2</td>
+<td align="right">0.045</td>
+<td align="left"></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Failed</th>
+<th align="left">Warning</th>
+<th align="left">Skipped</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">🛑</td>
+<td align="left">⚠️</td>
+<td align="left">🔶</td>
+</tr>
+</tbody>
+</table>
+</details>
+<details>
+<summary>
+Session Info
+</summary>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Field</th>
+<th align="left">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Version</td>
+<td align="left">R version 4.2.2 (2022-10-31)</td>
+</tr>
+<tr class="even">
+<td align="left">Platform</td>
+<td align="left">x86_64-pc-linux-gnu (64-bit)</td>
+</tr>
+<tr class="odd">
+<td align="left">Running</td>
+<td align="left">Kali GNU/Linux Rolling</td>
+</tr>
+<tr class="even">
+<td align="left">Language</td>
+<td align="left">en_US</td>
+</tr>
+<tr class="odd">
+<td align="left">Timezone</td>
+<td align="left">Africa/Addis_Ababa</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Package</th>
+<th align="left">Version</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">testthat</td>
+<td align="left">3.1.6</td>
+</tr>
+<tr class="even">
+<td align="left">covr</td>
+<td align="left">3.6.1</td>
+</tr>
+<tr class="odd">
+<td align="left">covrpage</td>
+<td align="left">0.2</td>
+</tr>
+</tbody>
+</table>
+</details>
+<!--- Final Status : skipped/warning --->
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
