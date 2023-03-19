@@ -11,12 +11,10 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 [![Project Status: Active ??? The project has reached a stable, usable
 state and is being actively
 developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
-<<<<<<< HEAD
 [![AppVeyor build
 status](https://ci.appveyor.com/api/projects/status/github/RobelTakele/AquaBEHERgui?branch=master&svg=true)](https://ci.appveyor.com/project/RobelTakele/AquaBEHERgui)
-=======
-[![workflow for Codecov](https://github.com/RobelTakele/AquaBEHERgui/actions/workflows/Codecov.yml/badge.svg?branch=master)](https://github.com/RobelTakele/AquaBEHERgui/actions/workflows/Codecov.yml)
->>>>>>> d384c577bdf092ceb454bfd275e0caa6115491df
+[![workflow for
+Codecov](https://github.com/RobelTakele/AquaBEHERgui/actions/workflows/Codecov.yml/badge.svg?branch=master)](https://github.com/RobelTakele/AquaBEHERgui/actions/workflows/Codecov.yml)
 <!-- badges: end -->
 
 A shiny GUI app used to compute and visualize soil-water balance and
