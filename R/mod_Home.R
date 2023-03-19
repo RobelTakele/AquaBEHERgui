@@ -16,7 +16,7 @@ mod_Home_ui <- function(id){
   tagList(
                     fluidPage(
 
-                  #  shinyjs::useShinyjs(),
+                    shinyjs::useShinyjs(),
 
                       tags$button(
                         id = 'close',
@@ -53,20 +53,22 @@ mod_Home_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-    output$home_img <- renderImage({
+    # output$home_img <- renderImage({
+    #
+    #   list(src = system.file("app/www/AquaBEHER.png", package = "AquaBEHERgui"),
+    #        align="right",
+    #        width="600")
+    #
+    # }, deleteFile = F)
+    #
+    # output$markdown <- renderUI({
+    #   withMathJax(HTML(readLines(rmarkdown::render(input = system.file("app/www/Home.md", package = "AquaBEHERgui"),
+    #                                                output_format = rmarkdown::html_fragment(),
+    #                                                quiet = TRUE
+    #   ))))
+    #
+    # })
 
-      list(src = "inst/app/www/AquaBEHER.png",
-           align="right",
-           width="600")
-
-    }, deleteFile = F)
-
-    output$markdown <- renderUI({
-      withMathJax(HTML(readLines(rmarkdown::render(input = "Home.md",
-                                                   output_format = rmarkdown::html_fragment(),
-                                                   quiet = TRUE
-      ))))
-    })
 
   })
 }

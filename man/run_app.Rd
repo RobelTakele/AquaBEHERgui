@@ -6,7 +6,7 @@
 \usage{
 run_app(
   onStart = NULL,
-  options = list(),
+  options = list(launch.browser = TRUE, shiny.autoreload = TRUE),
   enableBookmarking = NULL,
   uiPattern = "/",
   ...

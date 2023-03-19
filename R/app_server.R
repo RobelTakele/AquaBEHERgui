@@ -2,29 +2,50 @@
 #'
 #' @param input,output,session Internal parameters for {shiny}.
 #'     DO NOT REMOVE.
-#' @import shiny shinyWidgets  htmltools rmarkdown plotly leaflet foreach
+#' @import AquaBEHER openxlsx plotly shinyWidgets shinyFiles leaflet mapboxapi doParallel foreach sp ncdf4
 #' @importFrom methods as
+#' @importFrom leaflet.extras2 addEasyprint easyprintOptions easyprintMap
+#' @importFrom lubridate as_date
+#' @importFrom terra time writeCDF rast
 #' @noRd
 #'
 ############################################################################################################
 
-globalVariables(c("d"))
+jscode <- "shinyjs.closeWindow = function() { window.close(); }"
+
+# source("startUP.R")
+
+ globalVariables(c("d"))
 
 ##################################################################################################################
 
-# library(AquaBEHER)
+ # library(AquaBEHER)
+ # library(ncdf4)
+ # library(sp)
+ # library(raster)
+# library(magrittr)
 
-suppressPackageStartupMessages({
+# suppressPackageStartupMessages({
+#
+# library(terra)
+# library(sp)
+#
+# })
 
-library(terra)
-library(sp)
-
-})
 #############################################################################################################
 #############################################################################################################
 
 app_server <- function(input, output, session) {
+
+  options(shiny.maxRequestSize=10000*1024^2)
+
   # Your application server logic
+
+  observeEvent(input$close, {
+   # js$closeWindow()
+    stopApp()
+  })
+
 
   output$home_img <- renderImage({
 
@@ -32,7 +53,7 @@ app_server <- function(input, output, session) {
          align="right",
          width="600")
 
-  }, deleteFile = F)
+  }, deleteFile = FALSE)
 
   output$markdown <- renderUI({
     withMathJax(HTML(readLines(rmarkdown::render(input = system.file("app/www/Home.md", package = "AquaBEHERgui"),
@@ -41,6 +62,8 @@ app_server <- function(input, output, session) {
     ))))
 
     })
+
+  mod_Home_server("Home_1")
 
 #################################################################################################################
 #################################################################################################################
@@ -60,11 +83,20 @@ app_server <- function(input, output, session) {
 
   })
 
-  output$PETtable <- DT::renderDataTable(DT::datatable({
+  output$PETtable <- DT::renderDataTable({
 
-    PET_table()
+    DT::datatable(data = PET_table(),
+                  options = list(paging = TRUE,    ## paginate the output
+                                 pageLength = 12,  ## number of rows to output for each page
+                                 scrollX = TRUE,   ## enable scrolling on X axis
+                                 scrollY = TRUE,   ## enable scrolling on Y axis
+                                 autoWidth = TRUE, ## use smart column width handling
+                                 server = FALSE,   ## use client-side processing
+                                 dom = 'Bfrtip'),
+                  selection = 'multiple',
+                  fillContainer = TRUE)
 
-  }))
+  })
 
   output$downloadPET <- downloadHandler(
     filename = function() {
@@ -150,13 +182,6 @@ app_server <- function(input, output, session) {
 #########################################################################################################################################
   # ***** PET Gridded
 
-  # spPETmetNam <- c("Hargreaves-Samani", "Priestley-Taylor", "Penman-Monteith")
-  # spPETmetNamS <- c("HS", "PT", "PM")
-  #
-  # locSWBplot_Ynames <-  c("Rain", "R", "AVAIL", "TRAN", "DRAIN", "RUNOFF")
-  # locSWBplot_titles <- c("Rainfall (mm)", "R-index", "Soil-moisture (mm)", "Transpiration (mm)", "Drainage (mm)", "Runoff (mm)")
-
-# ****************************************************************************************************************************************
   spElev_dataInput <- reactive({
     req(input$Elev_tifInput)
     raster::brick(input$Elev_tifInput$datapath)
@@ -172,7 +197,14 @@ app_server <- function(input, output, session) {
     raster::brick(input$Tmin_cdfInput$datapath)
   })
 
-  shinyFiles::shinyDirChoose(input, 'dir', roots = c(home = '~'),
+  volumes <- c(shinyFiles::getVolumes()())
+
+  shinyFiles::shinyDirChoose(input, 'dir',
+                             roots = c(home = '~', wd = '.', volumes),
+                             #  defaultPath='~',
+                             defaultRoot='~',
+                             allowDirCreate = TRUE,
+                             session = session,
                              filetypes = c(" ", "nc", "xlsx", "tif")
   )
 
@@ -196,6 +228,17 @@ app_server <- function(input, output, session) {
                })
 
 
+  # output$directorypath <- renderPrint({
+  #   if (is.integer(input$directory)) {
+  #     cat("No directory has been selected !")
+  #   } else {
+  #     shinyFiles::parseDirPath(volumes, input$directory)
+  #   }
+  # })
+
+
+
+
   # render ui for slider ----------------------------------------------------
 
   output$slider <- renderUI({
@@ -214,9 +257,9 @@ app_server <- function(input, output, session) {
 
     shinyWidgets::progressSweetAlert(
       session = session, id = "myprogress",
-      title = h3(paste0("PET Estimation Using ", spPETmetNam[which((spPETmetNamS) == as.character(input$spPET_method))],
-                        " Formulation is in Progress ....."), style = "color: #FD1C03; font-style: bold; font-family: Brush Script MT;"),
-      display_pct = TRUE, value = 0, striped = TRUE, width = '50%')
+      title = h4(paste0("PET Estimation Using ", spPETmetNam[which((spPETmetNamS) == as.character(input$spPET_method))],
+                        " Formulation is in Progress ....."), style = "color: #FD1C03; font-style: bold; font-family: times;"),
+      display_pct = TRUE, value = 0, striped = TRUE, width = '55%')
 
     #######################################################################################################################
 
@@ -328,55 +371,55 @@ app_server <- function(input, output, session) {
 
     doParallel::registerDoParallel(cores = 4)
 
-    tmax.sp.list <- foreach(d = 1 : length(date.vec)) %dopar% {
+    tmax.sp.list <- foreach::foreach(d = 1 : length(date.vec)) %dopar% {
       as(raster::resample(data.tmax[[d]], r.tmplt, method = "bilinear"), "SpatialGridDataFrame")
     }
 
-    data.tmax.sp <- snow::docall(sp::cbind.Spatial, tmax.sp.list)
+    data.tmax.sp <- docall(sp::cbind.Spatial, tmax.sp.list)
 
-    tmin.sp.list <- foreach(d = 1 : length(date.vec)) %dopar% {
+    tmin.sp.list <- foreach::foreach(d = 1 : length(date.vec)) %dopar% {
       as(raster::resample(data.tmin[[d]], r.tmplt, method = "bilinear"), "SpatialGridDataFrame")
     }
 
-    data.tmin.sp <- snow::docall(sp::cbind.Spatial, tmin.sp.list)
+    data.tmin.sp <- docall(sp::cbind.Spatial, tmin.sp.list)
 
 
-    tmin.sp.list <- foreach(d = 1 : length(date.vec)) %dopar% {
+    tmin.sp.list <- foreach::foreach(d = 1 : length(date.vec)) %dopar% {
       as(raster::resample(data.tmin[[d]], r.tmplt, method = "bilinear"), "SpatialGridDataFrame")
     }
 
-    data.tmin.sp <- snow::docall(sp::cbind.Spatial, tmin.sp.list)
+    data.tmin.sp <- docall(sp::cbind.Spatial, tmin.sp.list)
 
     if (!is.null(SRAD.ncFile)) {
 
-      srad.sp.list <- foreach(d = 1 : length(date.vec)) %dopar% {
+      srad.sp.list <- foreach::foreach(d = 1 : length(date.vec)) %dopar% {
         as(raster::resample(data.srad[[d]], r.tmplt, method = "bilinear"), "SpatialGridDataFrame")
       }
 
-      data.srad.sp <- snow::docall(sp::cbind.Spatial, srad.sp.list)
+      data.srad.sp <- docall(sp::cbind.Spatial, srad.sp.list)
 
     }
 
     if (!is.null(Tdew.ncFile)) {
 
-      tdew.sp.list <- foreach(d = 1 : length(date.vec)) %dopar% {
+      tdew.sp.list <- foreach::foreach(d = 1 : length(date.vec)) %dopar% {
 
         as(raster::resample(data.tdew[[d]], r.tmplt, method = "bilinear"), "SpatialGridDataFrame")
       }
 
-      data.tdew.sp <- snow::docall(sp::cbind.Spatial, tdew.sp.list)
+      data.tdew.sp <- docall(sp::cbind.Spatial, tdew.sp.list)
 
     }
 
     if (!is.null(U10.ncFile)) {
 
 
-      u10.sp.list <- foreach(d = 1 : length(date.vec)) %dopar% {
+      u10.sp.list <- foreach::foreach(d = 1 : length(date.vec)) %dopar% {
 
         as(raster::resample(data.u10[[d]], r.tmplt, method = "bilinear"), "SpatialGridDataFrame")
       }
 
-      data.u10.sp <- snow::docall(sp::cbind.Spatial, u10.sp.list)
+      data.u10.sp <- docall(sp::cbind.Spatial, u10.sp.list)
 
 
     }
@@ -442,6 +485,9 @@ app_server <- function(input, output, session) {
     PET.rasBRK <- terra::rast(raster::brick(PET.sp))
     terra::time(PET.rasBRK) <- lubridate::as_date(date.vec)
 
+    # PET.rasBRK <- raster::brick(PET.sp)
+    # names(PET.rasBRK) <- lubridate::as_date(date.vec)
+
     terra::writeCDF(PET.rasBRK,
                     filename = paste0(out.dir, "/",  out.file, "_", Res, "_", method, "_", DateStart,"_T_", DateEnd, ".nc"),
                     varname = "PET",
@@ -452,6 +498,17 @@ app_server <- function(input, output, session) {
                     compression = 9,
                     missval = -9876543210,
                     overwrite = TRUE)
+
+# raster::writeRaster(x = PET.rasBRK,
+#                 filename = paste0(out.dir, "/",  out.file, "_", Res, "_", method, "_", DateStart,"_T_", DateEnd, ".nc"),
+#                 format = 'CDF',
+#                 varname = "PET",
+#                 longname = paste0("Potential Evapotranspiration [", method, "]"),
+#                 varunit = "mm",
+#                 zname = 'time',
+#                 zunit =  paste0("days since ", (lubridate::as_date(date.vec)-1)),
+#                 overwrite = TRUE)
+
 
     shinyWidgets::closeSweetAlert(session = session)
     shinyWidgets::sendSweetAlert(
@@ -488,6 +545,7 @@ app_server <- function(input, output, session) {
   spPETmapLeaf <- observeEvent(input$PETsp_runButton, {
 
     PET.mapDat <- PETspNetCDF()
+    PET.mapDat <- raster::brick(PET.mapDat)
     PET.mapDat.nms <- names(PET.mapDat)
     PET.mapDat.nms.dateVec <- lubridate::as_date(paste0(substr(PET.mapDat.nms, 2, 5), "-",
                                                         substr(PET.mapDat.nms, 7, 8), "-", substr(PET.mapDat.nms, 10, 11)))
@@ -495,7 +553,8 @@ app_server <- function(input, output, session) {
 
     PET.map_leaflet <- leaflet::projectRasterForLeaflet(PET.mapDat[[PETmap.index]], method = "bilinear")
 
-    PETcolorPal <- leaflet::colorNumeric(pals::brewer.spectral(12), raster::values( PET.map_leaflet),
+    PETcolorPal <- leaflet::colorNumeric(c("#9E0142","#D0384D","#EE6445","#FA9C58","#FDCD7B","#FEF0A7","#F3FAAD","#D0EC9C","#98D5A4","#5CB7A9","#3682BA","#5E4FA2"),
+                                         raster::values( PET.map_leaflet),
                                          na.color = "transparent")
 
     leaflet::leafletProxy("spPETmap", session) %>%
@@ -521,6 +580,7 @@ app_server <- function(input, output, session) {
   observeEvent(input$year,{
 
     PET.mapDat <- PETspNetCDF()
+    PET.mapDat <- raster::brick(PET.mapDat)
     DateStart = lubridate::as_date(input$spPET_DateStart)
     DateEnd = lubridate::as_date(input$spPET_DateEnd)
 
@@ -530,7 +590,8 @@ app_server <- function(input, output, session) {
 
     PET.map_leaflet <- leaflet::projectRasterForLeaflet(PET.mapDat[[PETmap.index]], method = "bilinear")
 
-    PETcolorPal <- leaflet::colorNumeric(pals::brewer.spectral(12), raster::values( PET.map_leaflet),
+    PETcolorPal <- leaflet::colorNumeric(c("#9E0142","#D0384D","#EE6445","#FA9C58","#FDCD7B","#FEF0A7","#F3FAAD","#D0EC9C","#98D5A4","#5CB7A9","#3682BA","#5E4FA2"),
+                                         raster::values( PET.map_leaflet),
                                          na.color = "transparent")
 
     leaflet::leafletProxy("spPETmap", session) %>% leaflet::clearControls() %>%
@@ -574,11 +635,20 @@ app_server <- function(input, output, session) {
 
   })
 
-  output$SWBtable <- DT::renderDataTable(DT::datatable({
+  output$SWBtable <- DT::renderDataTable({
 
-    SWB_table()
+    DT::datatable(data = SWB_table(),
+                  options = list(paging = TRUE,    ## paginate the output
+                                 pageLength = 12,  ## number of rows to output for each page
+                                 scrollX = TRUE,   ## enable scrolling on X axis
+                                 scrollY = TRUE,   ## enable scrolling on Y axis
+                                 autoWidth = TRUE, ## use smart column width handling
+                                 server = FALSE,   ## use client-side processing
+                                 dom = 'Bfrtip'),
+                  selection = 'multiple',
+                  fillContainer = TRUE)
 
-  }))
+  })
 
   output$downloadSWB <- downloadHandler(
     filename = function() {
@@ -672,8 +742,16 @@ app_server <- function(input, output, session) {
     raster::brick(input$PET_cdfInput$datapath)
   })
 
-  shinyFiles::shinyDirChoose(input, 'dirSWB', roots = c(home = '~'),
-                             filetypes = c(" ", "nc", "xlsx", "tif"))
+  volumes <- c(shinyFiles::getVolumes()())
+
+  shinyFiles::shinyDirChoose(input, 'dirSWB',
+                             roots = c(home = '~', wd = '.', volumes),
+                             #  defaultPath='~',
+                             defaultRoot='~',
+                             allowDirCreate = TRUE,
+                             session = session,
+                             filetypes = c(" ", "nc", "xlsx", "tif")
+  )
 
   global <- reactiveValues(datapath = getwd())
   dirSWB <- reactive(input$dirSWB)
@@ -711,7 +789,7 @@ app_server <- function(input, output, session) {
     shinyWidgets::progressSweetAlert(
       session = session,      # getDefaultReactiveDomain(),
       id = "mySWBprogress",
-      title = h3(paste0("SWB Estimation is in Progress ....."), style = "color: #FD1C03; font-style: bold; font-family: Brush Script MT;"),
+      title = h3(paste0("SWB Estimation is in Progress ....."), style = "color: #FD1C03; font-style: bold; font-family: times;"),
       display_pct = TRUE,
       value = 0,
       size = 'xxs',
@@ -742,39 +820,37 @@ app_server <- function(input, output, session) {
     swbSWHCras <- raster::resample(SWHCFile.SWB, swbRtmplt, method = "bilinear")
     swbSWHCsp <- as(swbSWHCras, "SpatialGridDataFrame")
 
-    rain.ncData <- Rain.ncFile
-    rain.nms <- names(rain.ncData)
-    rain.nms.date.vec <- lubridate::as_date(paste0(substr(rain.nms, 2, 5), "-", substr(rain.nms, 7, 8), "-",
-                                                   substr(rain.nms, 10, 11)))
-    startdate.SWBindex <- which(rain.nms.date.vec == DateStart.SWB)
-    enddate.SWBindex <- which(rain.nms.date.vec == DateEnd.SWB)
-    data.rain <- rain.ncData[[startdate.SWBindex:enddate.SWBindex]]
+rain.ncData <- Rain.ncFile
+rain.nms <- names(rain.ncData)
+rain.nms.date.vec <- lubridate::as_date(paste0(substr(rain.nms, 2, 5), "-", substr(rain.nms, 7, 8), "-",
+                                               substr(rain.nms, 10, 11)))
+startdate.SWBindex <- which(rain.nms.date.vec == DateStart.SWB)
+enddate.SWBindex <- which(rain.nms.date.vec == DateEnd.SWB)
+data.rain <- rain.ncData[[startdate.SWBindex:enddate.SWBindex]]
 
-    pet.ncData <- PET.ncFile
-    pet.nms <- names(pet.ncData)
-    pet.nms.date.vec <- lubridate::as_date(paste0(substr(pet.nms, 2, 5), "-", substr(pet.nms, 7, 8), "-",
-                                                  substr(pet.nms, 10, 11)))
-    startdate.SWBindex <- which(pet.nms.date.vec == DateStart.SWB)
-    enddate.SWBindex <- which(pet.nms.date.vec == DateEnd.SWB)
-    data.pet <- pet.ncData[[startdate.SWBindex:enddate.SWBindex]]
+pet.ncData <- PET.ncFile
+pet.nms <- names(pet.ncData)
+pet.nms.date.vec <- lubridate::as_date(paste0(substr(pet.nms, 2, 5), "-", substr(pet.nms, 7, 8), "-",
+                                              substr(pet.nms, 10, 11)))
+startdate.SWBindex <- which(pet.nms.date.vec == DateStart.SWB)
+enddate.SWBindex <- which(pet.nms.date.vec == DateEnd.SWB)
+data.pet <- pet.ncData[[startdate.SWBindex:enddate.SWBindex]]
 
     # ********************************************************************************************************************
 
-    doParallel::registerDoParallel(cores = 4)
+   doParallel::registerDoParallel(cores = 4)
 
     rain.sp.list <- foreach(d = 1 : length(dateVec.SWB)) %dopar% {
       as(raster::resample(data.rain[[d]], swbRtmplt, method = "bilinear"), "SpatialGridDataFrame")
     }
 
-    data.rain.sp <- snow::docall(snow::docall, rain.sp.list)
+    data.rain.sp <- docall(sp::cbind.Spatial, rain.sp.list)
 
     pet.sp.list <- foreach(d = 1 : length(dateVec.SWB)) %dopar% {
       as(raster::resample(data.pet[[d]], swbRtmplt, method = "bilinear"), "SpatialGridDataFrame")
     }
 
-    data.pet.sp <- snow::docall(snow::docall, pet.sp.list)
-
-
+    data.pet.sp <- docall(sp::cbind.Spatial, pet.sp.list)
 
     DRAINsp <- swbRsp
     TRANsp <- swbRsp
@@ -788,7 +864,9 @@ app_server <- function(input, output, session) {
     AVAILsp@data <- data.frame(matrix(NA, nrow = nrow(swbRsp@data), ncol = length(dateVec.SWB)))
     Rsp@data <- data.frame(matrix(NA, nrow = nrow(swbRsp@data), ncol = length(dateVec.SWB)))
 
-    for (grd in 1:nrow(AVAILsp@data)) {
+     for (grd in 1:nrow(AVAILsp@data)) {
+
+       data <- NULL
 
       data <- data.frame(Lat = sp::coordinates(AVAILsp)[,2][grd],
                          Lon = sp::coordinates(AVAILsp)[,1][grd],
@@ -798,7 +876,8 @@ app_server <- function(input, output, session) {
                          Rain = as.numeric(data.rain.sp@data[grd, ]),
                          Eto = as.numeric(data.pet.sp@data[grd, ]))
 
-      if (length(which(is.na(data$Rain))) > 1 || length(which(is.na(data$Eto))) > 1 || is.na(as.numeric(swbSWHCsp@data[grd,]))) {
+   #   if (length(which(is.na(data$Rain))) > 1 || length(which(is.na(data$Eto))) > 1 || is.na(as.numeric(swbSWHCsp@data[grd,]))) {
+      if (is.null(data) | any(is.na(data$Rain)) | any(is.na(data$Eto)) | any(is.na(as.numeric(swbSWHCsp@data[grd,])))) {
 
         SWBgrd <- data
         SWBgrd$DRAIN <- NA
@@ -833,6 +912,18 @@ app_server <- function(input, output, session) {
     AVAILrasBRK <- terra::rast(raster::brick(AVAILsp))
     RrasBRK <- terra::rast(raster::brick(Rsp))
 
+    # DRAINrasBRK <- raster::brick(DRAINsp)
+    # TRANrasBRK <- raster::brick(TRANsp)
+    # RUNOFFrasBRK <- raster::brick(RUNOFFsp)
+    # AVAILrasBRK <- raster::brick(AVAILsp)
+    # RrasBRK <- raster::brick(Rsp)
+    #
+    # names(DRAINrasBRK) <- lubridate::as_date(dateVec.SWB)
+    # names(TRANrasBRK ) <- lubridate::as_date(dateVec.SWB)
+    # names(RUNOFFrasBRK) <- lubridate::as_date(dateVec.SWB)
+    # names(AVAILrasBRK) <- lubridate::as_date(dateVec.SWB)
+    # names(RrasBRK) <- lubridate::as_date(dateVec.SWB)
+
     terra::time(DRAINrasBRK) <- lubridate::as_date(dateVec.SWB)
     terra::time(TRANrasBRK) <- lubridate::as_date(dateVec.SWB)
     terra::time(RUNOFFrasBRK) <- lubridate::as_date(dateVec.SWB)
@@ -851,6 +942,17 @@ app_server <- function(input, output, session) {
                     missval = -9876543210,
                     overwrite = TRUE)
 
+    # raster::writeRaster(x = DRAINrasBRK,
+    #                     filename = paste0(outDir.SWB, "/", spSWB.outFile, "_DRAIN_", Res.SWB, "_",
+    #                                       DateStart.SWB,"_T_", DateEnd.SWB, ".nc"),
+    #                     format = 'CDF',
+    #                     varname = "DRAIN",
+    #                     longname = paste0("amount of deep drainage in (mm)"),
+    #                     unit = 'mm',
+    #                     zname = 'time',
+    #                     zunit =  paste0("days since ", (lubridate::as_date(dateVec.SWB)-1)),
+    #                     overwrite = TRUE)
+
     terra::writeCDF(TRANrasBRK,
                     filename = paste0(outDir.SWB, "/", spSWB.outFile, "_TRAN_", Res.SWB, "_",
                                       DateStart.SWB,"_T_", DateEnd.SWB, ".nc"),
@@ -862,6 +964,17 @@ app_server <- function(input, output, session) {
                     compression = 9,
                     missval = -9876543210,
                     overwrite = TRUE)
+
+    # raster::writeRaster(x = TRANrasBRK,
+    #                     filename = paste0(outDir.SWB, "/", spSWB.outFile, "_TRAN_", Res.SWB, "_",
+    #                                       DateStart.SWB,"_T_", DateEnd.SWB, ".nc"),
+    #                     format = 'CDF',
+    #                     varname = "TRAN",
+    #                     longname = paste0("amount of water lost by transpiration (after drainage) in (mm)"),
+    #                     unit = 'mm',
+    #                     zname = 'time',
+    #                     zunit =  paste0("days since ", (lubridate::as_date(dateVec.SWB)-1)),
+    #                     overwrite = TRUE)
 
     terra::writeCDF(RUNOFFrasBRK,
                     filename = paste0(outDir.SWB, "/", spSWB.outFile, "_RUNOFF_", Res.SWB, "_",
@@ -875,6 +988,17 @@ app_server <- function(input, output, session) {
                     missval = -9876543210,
                     overwrite = TRUE)
 
+    # raster::writeRaster(x = RUNOFFrasBRK,
+    #                     filename = paste0(outDir.SWB, "/", spSWB.outFile, "_RUNOFF_", Res.SWB, "_",
+    #                                       DateStart.SWB,"_T_", DateEnd.SWB, ".nc"),
+    #                     format = 'CDF',
+    #                     varname = "RUNOFF",
+    #                     longname = paste0("surface runoff in (mm)"),
+    #                     unit = 'mm',
+    #                     zname = 'time',
+    #                     zunit =  paste0("days since ", (lubridate::as_date(dateVec.SWB)-1)),
+    #                     overwrite = TRUE)
+
     terra::writeCDF(AVAILrasBRK,
                     filename = paste0(outDir.SWB, "/", spSWB.outFile, "_Moisture_", Res.SWB, "_",
                                       DateStart.SWB,"_T_", DateEnd.SWB, ".nc"),
@@ -887,6 +1011,17 @@ app_server <- function(input, output, session) {
                     missval = -9876543210,
                     overwrite = TRUE)
 
+    # raster::writeRaster(x = AVAILrasBRK,
+    #                     filename = paste0(outDir.SWB, "/", spSWB.outFile, "_Moisture_", Res.SWB, "_",
+    #                                       DateStart.SWB,"_T_", DateEnd.SWB, ".nc"),
+    #                     format = 'CDF',
+    #                     varname = "AVAIL",
+    #                     longname = paste0("available soil moisture storage in (mm)"),
+    #                     unit = 'mm',
+    #                     zname = 'time',
+    #                     zunit =  paste0("days since ", (lubridate::as_date(dateVec.SWB)-1)),
+    #                     overwrite = TRUE)
+
     terra::writeCDF(RrasBRK,
                     filename = paste0(outDir.SWB, "/", spSWB.outFile, "_R_", Res.SWB, "_",
                                       DateStart.SWB,"_T_", DateEnd.SWB, ".nc"),
@@ -898,6 +1033,17 @@ app_server <- function(input, output, session) {
                     compression = 9,
                     missval = -9876543210,
                     overwrite = TRUE)
+
+    # raster::writeRaster(x = RrasBRK,
+    #                     filename = paste0(outDir.SWB, "/", spSWB.outFile, "_R_", Res.SWB, "_",
+    #                                       DateStart.SWB,"_T_", DateEnd.SWB, ".nc"),
+    #                     format = 'CDF',
+    #                     varname = "R",
+    #                     longname = paste0("actual-to-potential evapotranspiration ratio"),
+    #                     unit = 'index',
+    #                     zname = 'time',
+    #                     zunit =  paste0("days since ", (lubridate::as_date(dateVec.SWB)-1)),
+    #                     overwrite = TRUE)
 
     shinyWidgets::closeSweetAlert(session = session)
     shinyWidgets::sendSweetAlert(
@@ -914,7 +1060,7 @@ app_server <- function(input, output, session) {
 
     SWBrasBRK.lst
 
-  })
+  } )
 
 
   #######################################################################################################################
@@ -949,9 +1095,7 @@ app_server <- function(input, output, session) {
     spSWBlayr.index <- 5
     spSWBmap.index <- 1
 
-    spSWB.mapDat <- spSWB.mapLst[[spSWBlayr.index]]
-
-
+    spSWB.mapDat <- raster::brick(spSWB.mapLst[[spSWBlayr.index]])
 
     spSWBmap.leaflet <- leaflet::projectRasterForLeaflet(spSWB.mapDat[[spSWBmap.index]], method = "bilinear")
     spSWBmap.colorPal <- leaflet::colorNumeric(spSWBcolPal[[spSWBlayr.index]], raster::values(spSWBmap.leaflet),
@@ -989,7 +1133,7 @@ app_server <- function(input, output, session) {
     spSWB.mapLst <- SWBspNetCDF()
 
     spSWBlayr.index <- as.numeric(input$spSWB.mapView)
-    spSWB.mapDat <- spSWB.mapLst[[spSWBlayr.index]]
+    spSWB.mapDat <- raster::brick(spSWB.mapLst[[spSWBlayr.index]])
 
     spSWBmap.leaflet <- leaflet::projectRasterForLeaflet(spSWB.mapDat[[spSWBmap.index]], method = "bilinear")
     spSWBmap.colorPal <- leaflet::colorNumeric(spSWBcolPal[[spSWBlayr.index]], raster::values(spSWBmap.leaflet),
@@ -1160,8 +1304,17 @@ app_server <- function(input, output, session) {
     raster::brick(input$WSCsm.cdfInput$datapath)
   })
 
-  shinyFiles::shinyDirChoose(input, 'dirWSC', roots = c(home = '~'),
-                             filetypes = c(" ", "nc", "xlsx", "tif"))
+
+    volumes <- c(shinyFiles::getVolumes()())
+
+  shinyFiles::shinyDirChoose(input, 'dirWSC',
+                             roots = c(home = '~', wd = '.', volumes),
+                           #  defaultPath='~',
+                             defaultRoot='~',
+                             allowDirCreate = TRUE,
+                             session = session,
+                             filetypes = c(" ", "nc", "xlsx", "tif")
+  )
 
   global <- reactiveValues(datapath = getwd())
   dirWSC <- reactive(input$dirWSC)
@@ -1177,8 +1330,6 @@ app_server <- function(input, output, session) {
                  global$datapath <-
                    file.path(home, paste(unlist(dirWSC()$path[-1]), collapse = .Platform$file.sep))
                })
-
-  # render ui for slider ----------------------------------------------------
 
   output$spWSCtimeSlider <- renderUI({
 
@@ -1196,8 +1347,7 @@ app_server <- function(input, output, session) {
                 animate = TRUE)
   })
 
-
-  #######################################################################################################################
+#######################################################################################################################
 
   WSCspNetCDF <- eventReactive(input$WSCsp_runButton, {
 
@@ -1205,14 +1355,14 @@ app_server <- function(input, output, session) {
       session = session,      # getDefaultReactiveDomain(),
       id = "myWSCprogress",
       title = h3(paste0("Seasonal Calendar Estimation is in Progress ....."),
-                 style = "color: #FD1C03; font-style: bold; font-family: Brush Script MT;"),
+                 style = "color: #FD1C03; font-style: bold; font-family: times;"),
       display_pct = TRUE,
       value = 0,
       size = '20px',
       striped = TRUE,
-      width = '40%')
+      width = '50%')
 
-    # *********************************************************************************************************************
+# *********************************************************************************************************************
 
     DateStart.WSC = lubridate::as_date(input$spWSC_DateStart)
     DateEnd.WSC =  lubridate::as_date(input$spWSC_DateEnd)
@@ -1223,11 +1373,9 @@ app_server <- function(input, output, session) {
     onsetWindend = input$spWSConsetEnd                 #    "1997-01-31"
     cessaWindend = input$spWSCcessEnd                 #   "1997-06-30"
 
-    #$  WSCrain.ncFile = WSCspRAIN_dataInput()
     WSCswhc.ncFile = WSCspSWHC_dataInput()
     WSCr.ncFile = WSCspR_dataInput()
     WSCsm.ncFile = WSCspSM_dataInput()
-
 
     dateVec.WSC <- seq.Date(from = lubridate::as_date(DateStart.WSC),
                             to = lubridate::as_date(DateEnd.WSC), by = "day")
@@ -1260,7 +1408,7 @@ app_server <- function(input, output, session) {
     enddate.WSCindex <- which(WSCsm.nms.date.vec == DateEnd.WSC)
     data.WSCsm <- WSCsm.ncData[[startdate.WSCindex:enddate.WSCindex]]
 
-    # *********************************************************************************************************************
+# *********************************************************************************************************************
 
     doParallel::registerDoParallel(cores = 4)
 
@@ -1268,13 +1416,13 @@ app_server <- function(input, output, session) {
       as(raster::resample(data.WSCr[[d]], wscRtmplt, method = "bilinear"), "SpatialGridDataFrame")
     }
 
-    data.WSCr.sp <- snow::docall(sp::cbind.Spatial, WSCr.sp.list)
+    data.WSCr.sp <- docall(sp::cbind.Spatial, WSCr.sp.list)
 
     WSCsm.sp.list <- foreach(d = 1 : length(dateVec.WSC)) %dopar% {
       as(raster::resample(data.WSCsm[[d]], wscRtmplt, method = "bilinear"), "SpatialGridDataFrame")
     }
 
-    data.WSCsm.sp <- snow::docall(sp::cbind.Spatial, WSCsm.sp.list)
+    data.WSCsm.sp <- docall(sp::cbind.Spatial, WSCsm.sp.list)
 
     ONSETsp <- wscRsp
     yrONSETsp <- wscRsp
@@ -1469,7 +1617,7 @@ app_server <- function(input, output, session) {
     spWSClayr.index <- 1
     spWSCmap.index <- 1
 
-    spWSC.mapDat <- spWSC.mapLst[[spWSClayr.index]][2]
+    spWSC.mapDat <- raster::brick(spWSC.mapLst[[spWSClayr.index]][2])
     spWSC.mapDat[is.na(spWSC.mapDat)] <- -999
 
     spWSCmap.leaflet <- leaflet::projectRasterForLeaflet(spWSC.mapDat[[spWSCmap.index]], method = "bilinear")
@@ -1506,11 +1654,12 @@ app_server <- function(input, output, session) {
     spWSC.mapLst <-  WSCspNetCDF()
 
     spWSClayr.index <- as.numeric(input$spWSC.mapView)
-    spWSC.mapDat <- spWSC.mapLst[[spWSClayr.index]][2]
+    spWSC.mapDat <- raster::brick(spWSC.mapLst[[spWSClayr.index]][2])
     spWSC.mapDat[is.na(spWSC.mapDat)] <- -999
 
     spWSCmap.leaflet <- leaflet::projectRasterForLeaflet(spWSC.mapDat[[spWSCmap.index]], method = "bilinear")
-    spWSCmap.colorPal <- leaflet::colorNumeric(rev(pals::cubicl(100)), raster::values(spWSCmap.leaflet),
+    spWSCmap.colorPal <- leaflet::colorNumeric(rev(c("#780085","#7F2FD1","#686DF9","#4C9ED9","#3FC29F","#53DA60","#85EB50","#C1EC58","#E4D05C","#F9965B")),
+                                               raster::values(spWSCmap.leaflet),
                                                na.color = "transparent")
 
     leaflet::leafletProxy("spSeasCALmap", session) %>% leaflet::clearControls() %>%
@@ -1526,8 +1675,6 @@ app_server <- function(input, output, session) {
                                                                                 hidden = TRUE,
                                                                                 hideControlContainer = FALSE))
   })
-
-  # spWSCmapSaver(id = "spWSCsave")
 
   observeEvent(input$spWSCsave, {
     leaflet::leafletProxy("spSeasCALmap", session) %>%

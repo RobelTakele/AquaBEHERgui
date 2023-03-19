@@ -93,7 +93,7 @@ mod_spPET_ui <- function(id){
                  #   label = "Run PET !",
                  #   icon = icon("play"))
 
-                 div(style="position:relative; left:calc(70%);",
+                 div(style="position:relative; left:calc(60%);",
 
                      shinyWidgets::actionBttn(inputId = "PETsp_runButton",
                                               label = " Run PET",
@@ -120,7 +120,7 @@ mod_spPET_ui <- function(id){
                        h4(verbatimTextOutput("spPETmapTitle", placeholder = TRUE),
                           align = "center"),
 
-                       tags$head(tags$style("#spPETmapTitle{font-family: sans-serif; font-size: 20px;
+                       tags$head(tags$style("#spPETmapTitle{font-family: times; font-size: 20px;
                                                       font-style: bold; color: #3D3C3A;}")),
 
 
@@ -130,12 +130,12 @@ mod_spPET_ui <- function(id){
 
                        uiOutput(outputId = "slider"),
 
-                       column(3, offset = 0,
+                       column(4, offset = 0,
 
                               shinyWidgets::textInputIcon(inputId = "spPETmapFileN", label = "File Name:",
                                                           placeholder = "Output file name", width = '100%')),
 
-                       column(2, offset = 0,
+                       column(3, offset = 0,
                               selectInput("scene", "Select Scene:",
                                           choices = c("CurrentSize", "A4Landscape", "A4Portrait")),
 

@@ -34,17 +34,17 @@ mod_spSWB_ui <- function(id){
 
                  fileInput(inputId = "PET_cdfInput",
                            label = p(strong("PET: select NetCDF file to import: "),
-                                     style = "color: #454545;",
-                                     shinyBS::bsButton(inputId = "spSWBq1",
-                                                       label = "",
-                                                       icon = icon( name = NULL,
-                                                                    class = "custom_icon4"),
-                                                       style = "default",
-                                                       size = "extra-small",
-                                                       type = "action",
-                                                       block = FALSE,
-                                                       disabled = FALSE,
-                                                       value = FALSE)
+                                     style = "color: #454545;"
+                                     # shinyBS::bsButton(inputId = "spSWBq1",
+                                     #                   label = "",
+                                     #                   icon = icon( name = NULL,
+                                     #                                class = "custom_icon4"),
+                                     #                   style = "default",
+                                     #                   size = "extra-small",
+                                     #                   type = "action",
+                                     #                   block = FALSE,
+                                     #                   disabled = FALSE,
+                                     #                   value = FALSE)
                            ),
 
                            accept = ".nc",
@@ -53,12 +53,12 @@ mod_spSWB_ui <- function(id){
                            placeholder = "No file selected",
                            capture = NULL),
 
-                 shinyBS::bsPopover(id = "spSWBq1",
-                                    title = "Description of the data:",
-                                    content = paste0(h6("NetCDF file output from PET")),
-                                    placement = "right",
-                                    trigger = "hover", # (hover, focus, click, or manual)
-                                    options = list(container = "body")),
+                 # shinyBS::bsPopover(id = "spSWBq1",
+                 #                    title = "Description of the data:",
+                 #                    content = paste0(h6("NetCDF file output from PET")),
+                 #                    placement = "right",
+                 #                    trigger = "hover", # (hover, focus, click, or manual)
+                 #                    options = list(container = "body")),
 
                  numericInput(inputId = "SWBresInput",
                               label = "Set horizontal resolution in decimal degrees (\u00B0) ",
@@ -94,7 +94,7 @@ mod_spSWB_ui <- function(id){
                  #   label = " Run SWB !",
                  #   icon = icon("play"))
 
-                 div(style="position:relative; left:calc(70%);",
+                 div(style="position:relative; left:calc(60%);",
 
                      shinyWidgets::actionBttn(inputId = "SWBsp_runButton",
                                               label = " Run SWB",
@@ -121,7 +121,7 @@ mod_spSWB_ui <- function(id){
 
                        h4(verbatimTextOutput("spSWBmapTitle", placeholder = TRUE), align = "center"),
 
-                       tags$head(tags$style("#spSWBmapTitle{font-family: sans-serif; font-size: 20px;
+                       tags$head(tags$style("#spSWBmapTitle{font-family: times; font-size: 20px;
                                                       font-style: bold; color: #3D3C3A;}")),
 
                        leaflet::leafletOutput(outputId = 'spSWBmap', width = "100%", height = 500),
@@ -130,7 +130,7 @@ mod_spSWB_ui <- function(id){
 
                        uiOutput(outputId = "spSWBtimeSlider"),
 
-                       column(3, offset = 0,
+                       column(5, offset = 0,
 
                               selectInput("spSWB.mapView",
                                           label = "Choose SWB Parameter to Display:",
@@ -143,11 +143,11 @@ mod_spSWB_ui <- function(id){
 
                        ),
 
-                       column(3, offset = 1,
+                       column(4, offset = 0.5,
                               shinyWidgets::textInputIcon(inputId = "spSWBmapFileN", label = "File Name:",
                                                           placeholder = "Output file name", width = '100%')),
 
-                       column(2, offset = 0.5,
+                       column(3, offset = 0.5,
                               selectInput("spSWBscene", "Select Scene:",
                                           choices = c("CurrentSize", "A4Landscape", "A4Portrait")),
 

@@ -11,7 +11,25 @@ License: CC BY 4.0
 Imports: 
     config (>= 0.3.1),
     golem (>= 0.3.5.9001),
+    magrittr,
+    shinyjs,
+    rmarkdown,
     DT,
+    lubridate,
+    openxlsx,
+    plotly,
+    shinyWidgets,
+    shinyFiles,
+    leaflet,
+    mapboxapi,
+    leaflet.extras2,
+    leaflet.multiopacity,
+    methods,
+    foreach,
+    doParallel, 
+    sp,
+    terra,
+    ncdf4
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.3
@@ -23,11 +41,13 @@ Suggests:
     spelling,
     testthat (>= 3.0.0),
     knitr,
+    rgdal,
     devtools
 Config/testthat/edition: 3
 Language: en-US
 Depends: 
     R (>= 2.10),
     AquaBEHER,
-    shiny
+    shiny,
+    raster
 VignetteBuilder: knitr

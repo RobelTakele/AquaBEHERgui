@@ -20,17 +20,17 @@ mod_locSWB_ui <- function(id){
 
                  fileInput(inputId = "SWB_xlsxInput",
                            label = h4( span("Select XLSX File to Import: ",),
-                                       style = "color: #4d3a7d;",
-                                       shinyBS::bsButton(inputId = "locSWBq1",
-                                                         label = "",
-                                                         icon = icon( name = NULL,
-                                                                      class = "custom_icon2"),
-                                                         style = "default",
-                                                         size = "extra-small",
-                                                         type = "action",
-                                                         block = FALSE,
-                                                         disabled = FALSE,
-                                                         value = FALSE)
+                                       style = "color: #4d3a7d;"
+                                       # shinyBS::bsButton(inputId = "locSWBq1",
+                                       #                   label = "",
+                                       #                   icon = icon( name = NULL,
+                                       #                                class = "custom_icon2"),
+                                       #                   style = "default",
+                                       #                   size = "extra-small",
+                                       #                   type = "action",
+                                       #                   block = FALSE,
+                                       #                   disabled = FALSE,
+                                       #                   value = FALSE)
                            ),
 
                            accept = ".xlsx",
@@ -39,12 +39,12 @@ mod_locSWB_ui <- function(id){
                            placeholder = "No file selected",
                            capture = NULL),
 
-                 shinyBS::bsPopover(id = "locSWBq1",
-                                    title = "Description of the required data:",
-                                    content = paste0(h6("User can use the excell file exported from the PET estimation")),
-                                    placement = "right",
-                                    trigger = "click", # (hover, focus, click, or manual)
-                                    options = list(container = "body")),
+                 # shinyBS::bsPopover(id = "locSWBq1",
+                 #                    title = "Description of the required data:",
+                 #                    content = paste0(h6("User can use the excell file exported from the PET estimation")),
+                 #                    placement = "right",
+                 #                    trigger = "click", # (hover, focus, click, or manual)
+                 #                    options = list(container = "body")),
 
                  numericInput(inputId = "WHCinput",
                               label = "Enter Water Holding Capacity in (mm): ",
@@ -55,7 +55,7 @@ mod_locSWB_ui <- function(id){
 
                  #       actionButton("SWB_runButton", "Run SWB", icon = icon("play"))
 
-                 div(style="position:relative; left:calc(70%);",
+                 div(style="position:relative; left:calc(60%);",
 
                      shinyWidgets::actionBttn(inputId = "SWB_runButton",
                                               label = " Run SWB",
@@ -132,27 +132,27 @@ mod_locSWB_ui <- function(id){
                               selectInput('SWBplot_y',
                                           #  'Y Variable:',
                                           label = h4(span("Y Variable: ",),
-                                                     style = "color: #4d3a7d;",
-                                                     shinyBS::bsButton(inputId = "locSWBq2",
-                                                                       label = "",
-                                                                       icon = icon( name = NULL,
-                                                                                    class = "custom_icon3"),
-                                                                       style = "default",
-                                                                       size = "extra-small",
-                                                                       type = "action",
-                                                                       block = FALSE,
-                                                                       disabled = FALSE,
-                                                                       value = FALSE)
+                                                     style = "color: #4d3a7d;"
+                                                     # shinyBS::bsButton(inputId = "locSWBq2",
+                                                     #                   label = "",
+                                                     #                   icon = icon( name = NULL,
+                                                     #                                class = "custom_icon3"),
+                                                     #                   style = "default",
+                                                     #                   size = "extra-small",
+                                                     #                   type = "action",
+                                                     #                   block = FALSE,
+                                                     #                   disabled = FALSE,
+                                                     #                   value = FALSE)
                                           ),
 
                                           SWBplot_Yvar, SWBplot_Yvar[1])),
 
-                       shinyBS::bsPopover(id = "locSWBq2",
-                                          title = "Description of the variables:",
-                                          content = paste0(h6("TRAN: transpiration; AVAIL: Soil-moisture")),
-                                          placement = "right",
-                                          trigger = "click", # (hover, focus, click, or manual)
-                                          options = list(container = "body")),
+                       # shinyBS::bsPopover(id = "locSWBq2",
+                       #                    title = "Description of the variables:",
+                       #                    content = paste0(h6("TRAN: transpiration; AVAIL: Soil-moisture")),
+                       #                    placement = "right",
+                       #                    trigger = "click", # (hover, focus, click, or manual)
+                       #                    options = list(container = "body")),
 
 
                        column(4, offset = 1,
@@ -172,7 +172,7 @@ mod_locSWB_ui <- function(id){
                             br( )
                      ),
 
-                     shinydlplot::downloadablePlotlyUI(id = "SWBplot", inline = TRUE)
+                   #  shinydlplot::downloadablePlotlyUI(id = "SWBplot", inline = TRUE)
 
                    )
 

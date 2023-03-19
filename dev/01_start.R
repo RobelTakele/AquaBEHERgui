@@ -52,7 +52,7 @@ golem::use_favicon("inst/app/www/AquaBEHERicon.png")
 
 ## Add a lib and data folder
  usethis::use_directory("inst/app/libs/", ignore = FALSE)
- usethis::use_directory("packrat", ignore = FALSE)
+ usethis::use_directory("packrat", ignore = TRUE)
  usethis::use_directory("pkgdown/favicon", ignore = FALSE)
 
 

@@ -121,9 +121,9 @@ mod_locWSC_ui <- function(id){
                               shinyWidgets::colorSelectorInput(inputId = "WSCplot_color", label = "Pick a color:",
                                                                choices = WSCcolVec, ncol = 60))
 
-                     ),
+                     )
 
-                     shinydlplot::downloadablePlotlyUI(id = "seasCalplot", inline = TRUE)
+                  #   shinydlplot::downloadablePlotlyUI(id = "seasCalplot", inline = TRUE)
 
                    )
 

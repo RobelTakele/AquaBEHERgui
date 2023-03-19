@@ -24,6 +24,11 @@ save(rcn, file="data-raw/rcn.rda")
 usethis::use_data(rcn, internal = TRUE, overwrite = TRUE)
 usethis::use_data(rcn, internal = FALSE, overwrite = TRUE)
 
+## ***** Use magrittr's pipe in your package
+
+usethis::use_pipe(export = TRUE)
+usethis::use_import_from(package = "foreach", "%dopar%")
+
 #######################################################################################
 ## ***** Add modules ----
 ## Create a module infrastructure in R/
@@ -37,14 +42,22 @@ golem::add_module(name = 'spSWB', with_test = TRUE)
 golem::add_module(name = 'locWSC', with_test = TRUE)
 golem::add_module(name = 'spWSC', with_test = TRUE)
 
+## ***** Import a function from another package
+
+usethis::use_import_from()
+
 ## External resources
 golem::use_internal_file("../Resourses/Home.md",  open = TRUE)
 
 ## Add helper functions ----
 # golem::add_fct("helpers", with_test = TRUE)
-# golem::add_utils("helpers", with_test = TRUE)
+ golem::add_utils("helpers", with_test = TRUE)
 
+# Documentation
 
+## Vignette ----
+usethis::use_vignette("AquaBEHERgui")
+# devtools::build_vignettes()
 
 ## Tests ----
 ## Add one line by test you want to create
@@ -72,8 +85,19 @@ usethis::use_coverage()
 covrpage::covrpage()
 covrpage::use_covrpage_vignette()
 
+## ***** AppVeyor CI for continuous integration on Windows
+
+usethis::use_appveyor()
+usethis::use_appveyor_badge()
+
 # Jenkins
 usethis::use_jenkins()
+usethis::  use_make()
+
+##################################################################################
+## ***** Version Control
+
+usethis::use_version()
 
 ###################################################################################################
 ###################################################################################################
@@ -87,13 +111,6 @@ golem::add_js_handler("handlers")
 golem::add_css_file("custom")
 golem::add_sass_file("custom")
 
-# Documentation
-
-## Vignette ----
-usethis::use_vignette("AquaBEHERgui")
-devtools::build_vignettes()
-
-usethis::use_citation()
 
 # # Travis CI
 # usethis::use_travis()
@@ -110,3 +127,6 @@ usethis::use_citation()
 # You're now set! ----
 # go to dev/03_deploy.R
 rstudioapi::navigateToFile("dev/03_deploy.R")
+
+
+

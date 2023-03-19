@@ -34,20 +34,20 @@ mod_locPET_ui <- function(id){
                  ),
                  fileInput(inputId = "PET_xlsxInput",
                            label = h4( span("Select XLSX File to Import: ",),
-                                       style = "color: #4d3a7d;",
-                                       shinyBS::bsButton(inputId = "locPETq1",
-                                                         label = "",
-                                                         icon = icon(
-                                                           name = NULL,
-                                                           class = "custom_icon"
-                                                         ),
-
-                                                         style = "default",
-                                                         size = "extra-small",
-                                                         type = "action",
-                                                         block = FALSE,
-                                                         disabled = FALSE,
-                                                         value = FALSE)
+                                       style = "color: #4d3a7d;"
+                                       # shinyBS::bsButton(inputId = "locPETq1",
+                                       #                   label = "",
+                                       #                   icon = icon(
+                                       #                     name = NULL,
+                                       #                     class = "custom_icon"
+                                       #                   ),
+                                       #
+                                       #                   style = "default",
+                                       #                   size = "extra-small",
+                                       #                   type = "action",
+                                       #                   block = FALSE,
+                                       #                   disabled = FALSE,
+                                       #                   value = FALSE)
                            ),
 
                            accept = ".xlsx",
@@ -56,12 +56,12 @@ mod_locPET_ui <- function(id){
                            placeholder = "No file selected",
                            capture = NULL),
 
-                 shinyBS::bsPopover(id = "locPETq1",
-                                    title = "Description of the data:",
-                                    content = paste0(h5("The data must contain columns with the following parameters named accordingly; Lat, Lon, Elev, Year, Month, Day,Tmax, Tmin and additional optional parameters (Rs, Tdew, Uz).")),
-                                    placement = "right",
-                                    trigger = "focus", # (hover, focus, click, or manual)
-                                    options = list(container = "body")),
+                 # shinyBS::bsPopover(id = "locPETq1",
+                 #                    title = "Description of the data:",
+                 #                    content = paste0(h5("The data must contain columns with the following parameters named accordingly; Lat, Lon, Elev, Year, Month, Day,Tmax, Tmin and additional optional parameters (Rs, Tdew, Uz).")),
+                 #                    placement = "right",
+                 #                    trigger = "focus", # (hover, focus, click, or manual)
+                 #                    options = list(container = "body")),
 
                  selectInput("PETmethod", label = h4("Choose Method:"),
                              choices = list("Hargreaves-Samani" = "HS",
@@ -71,7 +71,7 @@ mod_locPET_ui <- function(id){
 
                  # actionButton("PET_runButton", " Run PET", icon = icon("play"))
 
-                 div(style="position:relative; left:calc(70%);",
+                 div(style="position:relative; left:calc(60%);",
 
                      shinyWidgets::actionBttn(inputId = "PET_runButton",
                                               label = " Run PET",
@@ -92,7 +92,7 @@ mod_locPET_ui <- function(id){
 
                      fluidPage(
 
-                       DT::dataTableOutput("PETtable", width = '100%'),
+                       DT::dataTableOutput("PETtable"),
 
                        br(),
 
@@ -104,7 +104,15 @@ mod_locPET_ui <- function(id){
                                                       style = "jelly",
                                                       icon = icon("download"),
                                                       block = FALSE)
-                       )
+                       ),
+
+                       br(),
+
+                       fluidRow(
+
+                         br(),
+
+                                )
 
                      )
 
@@ -149,11 +157,11 @@ mod_locPET_ui <- function(id){
 
                      ),
 
-                     periscope::downloadablePlotUI(id = "PETplot",
-                                                   downloadtypes = c("png"),
-                                                   download_hovertext = "Download the plot here!",
-                                                   height = "500px",
-                                                   btn_halign = "left")
+                     # periscope::downloadablePlotUI(id = "PETplot",
+                     #                               downloadtypes = c("png"),
+                     #                               download_hovertext = "Download the plot here!",
+                     #                               height = "500px",
+                     #                               btn_halign = "left")
                    )
 
                  )

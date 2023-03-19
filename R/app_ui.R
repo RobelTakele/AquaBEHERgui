@@ -7,66 +7,12 @@
 #'
 ##################################################################################################################
 ##################################################################################################################
-# ------------------------------------------------
-# checks that the required packages are installed for running AquaBEHERgui.
-#
-# ------------------------------------------------
+#######################################################################################################################
+# ***** Declaring Functions
 
-AquaBEHER.packages <- c("devtools", "bslib", "data.table",  "doParallel", "DT", "fontawesome",
-                        "fs", "ggplot2", "htmltools", "htmlwidgets", "leafem", "leaflet", "leaflet.extras",
-                        "leaflet.extras2", "leaflet.multiopacity", "leaflet.opacity", "lubridate", "mapboxapi",
-                        "mapview", "markdown", "ncdf4", "OpenStreetMap", "openxlsx", "periscope", "packrat", "pals", "plotly", "raster",
-                        "rgdal", "rmarkdown", "shiny", "shinyalert", "shinyBS", "shinydlplot", "shinyFiles", "shinyjs", "shinythemes",
-                        "shinyWidgets", "snow", "sp", "terra")
+jscode <- "shinyjs.closeWindow = function() { window.close(); }"
 
-print("",quote=FALSE)
-print("Checking for required R packages.",quote=FALSE)
-print("******************************",quote=FALSE)
-
-print("",quote=FALSE)
-print("This is a unix-based OS, checking for additional R packages.",quote=FALSE)
-print("******************************",quote=FALSE)
-
-for (package in 1:length(AquaBEHER.packages)) {
-
-  if(AquaBEHER.packages[package] %in% installed.packages()[,"Package"]) {
-
-    print(paste(AquaBEHER.packages[package],"... installed.",sep=""),quote=FALSE)
-
-  } else { print(paste(AquaBEHER.packages[package],sep=""),quote=FALSE)
-
-    install.packages(AquaBEHER.packages[package], repos = "http://cran.us.r-project.org")}
-}
-
-print("",quote=FALSE)
-print("******************************",quote=FALSE)
-print(paste("R version ",as.character(getRversion())," detected.",sep=""),quote=FALSE)
-print("Checking complete.",quote=FALSE)
-
-###################################################################################################################
-
-library(packrat)
-
- # ***** packrat integration
-
-packrat::set_opts(local.repos = c("inst/app/libs"))
-
-# ***** installs packages available in a local repository
-
-AquaBEHERgui.packages <- c("AquaBEHER")
-
-for (package in 1:length(AquaBEHERgui.packages)) {
-
-  if(AquaBEHERgui.packages[package] %in% installed.packages()[,"Package"]) {
-    print(paste(AquaBEHERgui.packages[package],"... installed.",sep=""),quote=FALSE)
-
-  } else { print(paste(AquaBEHERgui.packages[package],"... not installed. Installing...",sep=""),quote=FALSE)
-    packrat::install_local(AquaBEHERgui.packages[package])
-
-  }
-
-}
-
+# source("startUP.R")
 
 ##################################################################################################################
 # ***** Setting Global Variables
@@ -99,8 +45,11 @@ locSWBplot_titles <- c("Rainfall (mm)", "R-index", "Soil-moisture (mm)", "Transp
 spSWBparVal <- 1:5
 spSWBparNam <- c("DRAIN", "TRAN", "RUNOFF", "AVAIL", "R")
 spSWBlegTitle <- c("Drainage (mm)", "Transpiration (mm)", "Runoff (mm)", "Moisture (mm)", "R-index")
-spSWBcolPal <- list(rev(pals::linearl(100)), rev(pals::viridis(100)), rev(pals::ocean.haline(100)),
-                    rev(pals::cubicl(100)), pals::brewer.spectral(12))
+spSWBcolPal <- list(rev(c("#440154","#462777","#3D4988","#30678D","#25818E","#1F9D87","#36B677","#6DCC57","#B3DC2B","#FDE725")),
+                    rev(c("#440154","#462777","#3D4988","#30678D","#25818E","#1F9D87","#36B677","#6DCC57","#B3DC2B","#FDE725")),
+                    rev(c("#780085","#7F2FD1","#686DF9","#4C9ED9","#3FC29F","#53DA60","#85EB50","#C1EC58","#E4D05C","#F9965B")),
+                    rev(c("#780085","#7F2FD1","#686DF9","#4C9ED9","#3FC29F","#53DA60","#85EB50","#C1EC58","#E4D05C","#F9965B")),
+                    c("#9E0142","#D0384D","#EE6445","#FA9C58","#FDCD7B","#FEF0A7","#F3FAAD","#D0EC9C","#98D5A4","#5CB7A9","#3682BA","#5E4FA2"))
 
 WSCplot_Yvar <- c("onset.Value", "cessation.Value", "Duration")
 
@@ -117,7 +66,9 @@ WSCplot_Ynames <- c("Days since start of onset window", "Days since start of ons
 
 spWSClegTitle <- c("Onset (DOY)", "Cessation (DOY)", "Duration (Days)")
 
-spWSCcolPal  <- list(rev(pals::viridis(100)), rev(pals::cubicl(100)), rev(pals::cubicl(100)))
+spWSCcolPal  <- list(rev(c("#440154","#462777","#3D4988","#30678D","#25818E","#1F9D87","#36B677","#6DCC57","#B3DC2B","#FDE725")),
+                     rev(c("#780085","#7F2FD1","#686DF9","#4C9ED9","#3FC29F","#53DA60","#85EB50","#C1EC58","#E4D05C","#F9965B")),
+                     rev(c("#780085","#7F2FD1","#686DF9","#4C9ED9","#3FC29F","#53DA60","#85EB50","#C1EC58","#E4D05C","#F9965B")))
 
 ##################################################################################################################
 ##################################################################################################################
@@ -171,11 +122,6 @@ golem_add_external_resources <- function() {
     app_sys("app/www")
   )
 
-  add_resource_path(
-    "libs",
-    app_sys("app/libs")
-  )
-
   tags$head(
     favicon(),
     bundle_resources(
@@ -184,7 +130,7 @@ golem_add_external_resources <- function() {
     ),
 
     # Add here other external resources
-       # shinyjs::useShinyjs()
+        shinyjs::useShinyjs()
 
   )
 }

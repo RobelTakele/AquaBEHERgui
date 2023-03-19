@@ -7,6 +7,8 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
+
+
 mod_spWSC_ui <- function(id){
   ns <- NS(id)
   tagList(
@@ -75,12 +77,8 @@ mod_spWSC_ui <- function(id){
 
                  tags$h1(" "),
                  shinyWidgets::useSweetAlert(), # /!\ needed with 'progressSweetAlert'
-                 # actionButton(
-                 #   inputId = "WSCsp_runButton",
-                 #   label = "Run WSC !",
-                 #   icon = icon("play"))
 
-                 div(style="position:relative; left:calc(70%);",
+                 div(style="position:relative; left:calc(60%);",
 
                      shinyWidgets::actionBttn(inputId = "WSCsp_runButton",
                                               label = " Run WSC",
@@ -104,7 +102,7 @@ mod_spWSC_ui <- function(id){
                      fluidPage(
 
                        h4(verbatimTextOutput("spWSCmapTitle", placeholder = TRUE), align = "center"),
-                       tags$head(tags$style("#spWSCmapTitle{font-family: sans-serif; font-size: 20px;
+                       tags$head(tags$style("#spWSCmapTitle{font-family: times; font-size: 24px;
                                                       font-style: bold; color: #3D3C3A;}")),
                        br(),
 
@@ -114,7 +112,7 @@ mod_spWSC_ui <- function(id){
 
                        uiOutput(outputId = "spWSCtimeSlider"),
 
-                       column(3, offset = 0,
+                       column(5, offset = 0,
 
                               selectInput(inputId = "spWSC.mapView",
                                           label = "Choose WSC Parameter to Display:",
@@ -124,12 +122,12 @@ mod_spWSC_ui <- function(id){
                                                          "Duration" = 3))
                        ),
 
-                       column(3, offset = 1,
+                       column(3, offset = 0,
                               shinyWidgets::textInputIcon(inputId = "spWSCmapFileN", label = "File Name:",
                                                           #  title = "Renames the leaflet map",
                                                           placeholder = "Output file name", width = '100%')),
 
-                       column(2, offset = 0.5,
+                       column(3, offset = 0,
                               selectInput(inputId = "spWSCscene",
                                           label = "Select Scene: " ,
                                           #   title = "Selects the size mode of the leaflet map scene",
