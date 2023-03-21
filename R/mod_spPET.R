@@ -21,12 +21,21 @@ mod_spPET_ui <- function(id){
 
                  shinyWidgets::airDatepickerInput(
                    inputId = "spPET_DateStart",
-                   label = "Start Date:",
+                   label = "Start Date (yyyy-MM-dd):",
+                   separator = " - ",
+                   dateFormat = "yyyy-MM-dd",
+                   autoClose = TRUE,
+                   view = c("days", "months", "years"),
                    value = Sys.Date() - 7),
+
 
                  shinyWidgets::airDatepickerInput(
                    inputId = "spPET_DateEnd",
-                   label = "End Date:",
+                   label = "End Date (yyyy-MM-dd):",
+                   separator = " - ",
+                   dateFormat = "yyyy-MM-dd",
+                   autoClose = TRUE,
+                   view = c("days", "months", "years"),
                    value = Sys.Date() - 7),
 
                  selectInput("spPET_method", label = h4("Choose Method:"),
@@ -70,14 +79,17 @@ mod_spPET_ui <- function(id){
                               width = '100%'),
 
                  p(strong("Select output directory: ")),
+
                  shinyFiles::shinyDirButton(id = "dir",
                                             label = "  Please select a folder to save data ...",
                                             icon = icon("folder-open ", lib = "glyphicon"),
                                             class = "shinyDirectories btn-default",
                                             title = "Upload ",
+                                            buttonType = "default",
+                                            style = NULL,
                                             type = "button "),
-
                  br(),
+                 verbatimTextOutput(outputId = "dir", placeholder	= TRUE),
                  br(),
 
                  shinyWidgets::textInputIcon(inputId = "PETspOUTfile",

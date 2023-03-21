@@ -21,12 +21,20 @@ mod_spSWB_ui <- function(id){
 
                  shinyWidgets::airDatepickerInput(
                    inputId = "spSWB_DateStart",
-                   label = "Start Date:",
+                   label = "Start Date (yyyy-MM-dd):",
+                   separator = " - ",
+                   dateFormat = "yyyy-MM-dd",
+                   autoClose = TRUE,
+                   view = c("days", "months", "years"),
                    value = Sys.Date() - 7),
 
                  shinyWidgets::airDatepickerInput(
                    inputId = "spSWB_DateEnd",
-                   label = "End Date:",
+                   label = "Start Date (yyyy-MM-dd):",
+                   separator = " - ",
+                   dateFormat = "yyyy-MM-dd",
+                   autoClose = TRUE,
+                   view = c("days", "months", "years"),
                    value = Sys.Date() - 7),
 
                  fileInput("Rain_cdfInput", "Rain: select NetCDF file to import", accept = ".nc"),
@@ -79,8 +87,8 @@ mod_spSWB_ui <- function(id){
                                             type = "button "),
 
                  br(),
+                 verbatimTextOutput(outputId = "dirSWB", placeholder	= TRUE),
                  br(),
-
 
                  shinyWidgets::textInputIcon(inputId = "spSWBoutFile",
                                              label = "SWB data output file name prefix:",

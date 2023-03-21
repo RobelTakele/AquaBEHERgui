@@ -23,12 +23,20 @@ mod_spWSC_ui <- function(id){
 
                  shinyWidgets::airDatepickerInput(
                    inputId = "spWSC_DateStart",
-                   label = "Start Date:",
+                   label = "Start Date (yyyy-MM-dd):",
+                   separator = " - ",
+                   dateFormat = "yyyy-MM-dd",
+                   autoClose = TRUE,
+                   view = c("days", "months", "years"),
                    value = Sys.Date() - 7),
 
                  shinyWidgets::airDatepickerInput(
                    inputId = "spWSC_DateEnd",
-                   label = "End Date:",
+                   label = "Start Date (yyyy-MM-dd):",
+                   separator = " - ",
+                   dateFormat = "yyyy-MM-dd",
+                   autoClose = TRUE,
+                   view = c("days", "months", "years"),
                    value = Sys.Date() - 7),
 
                  fileInput("WSCswhc.cdfInput", "soilWHC: select NetCDF file to import", accept = ".nc"),
@@ -39,17 +47,29 @@ mod_spWSC_ui <- function(id){
 
                  shinyWidgets::airDatepickerInput(
                    inputId = "spWSConsetStart",
-                   label = "Onset window start:",
+                   label = "Start Date (yyyy-MM-dd):",
+                   separator = " - ",
+                   dateFormat = "yyyy-MM-dd",
+                   autoClose = TRUE,
+                   view = c("days", "months", "years"),
                    value = Sys.Date() - 7),
 
                  shinyWidgets::airDatepickerInput(
                    inputId = "spWSConsetEnd",
-                   label = "Onset window end:",
+                   label = "Start Date (yyyy-MM-dd):",
+                   separator = " - ",
+                   dateFormat = "yyyy-MM-dd",
+                   autoClose = TRUE,
+                   view = c("days", "months", "years"),
                    value = Sys.Date() - 7),
 
                  shinyWidgets::airDatepickerInput(
                    inputId = "spWSCcessEnd",
-                   label = "Cessation window end:",
+                   label = "Start Date (yyyy-MM-dd):",
+                   separator = " - ",
+                   dateFormat = "yyyy-MM-dd",
+                   autoClose = TRUE,
+                   view = c("days", "months", "years"),
                    value = Sys.Date() - 7),
 
                  numericInput(inputId = "WSCresInput",
@@ -67,6 +87,7 @@ mod_spWSC_ui <- function(id){
                                             title = "Upload ",
                                             type = "button "),
                  br(),
+                 verbatimTextOutput(outputId = "dirWSC", placeholder	= TRUE),
                  br(),
 
                  shinyWidgets::textInputIcon(inputId = "spWSCoutFilePrefix",

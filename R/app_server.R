@@ -7,6 +7,7 @@
 #' @importFrom leaflet.extras2 addEasyprint easyprintOptions easyprintMap
 #' @importFrom lubridate as_date
 #' @importFrom terra time writeCDF rast
+#' @importFrom raster brick extent crs resample values
 #' @noRd
 #'
 ############################################################################################################
@@ -15,7 +16,7 @@ jscode <- "shinyjs.closeWindow = function() { window.close(); }"
 
 # source("startUP.R")
 
- globalVariables(c("d"))
+ utils::globalVariables(c("d"))
 
 ##################################################################################################################
 
@@ -197,47 +198,37 @@ app_server <- function(input, output, session) {
     raster::brick(input$Tmin_cdfInput$datapath)
   })
 
-  volumes <- c(shinyFiles::getVolumes()())
+  spPETroots <- c(wd = '.', home = '~', shinyFiles::getVolumes()())
 
-  shinyFiles::shinyDirChoose(input, 'dir',
-                             roots = c(home = '~', wd = '.', volumes),
-                             #  defaultPath='~',
-                             defaultRoot='~',
-                             allowDirCreate = TRUE,
-                             session = session,
-                             filetypes = c(" ", "nc", "xlsx", "tif")
-  )
+    shinyFiles::shinyDirChoose(input, 'dir',
+                               roots = spPETroots,
+                               #  defaultPath='~',
+                               defaultRoot='~',
+                               allowDirCreate = TRUE,
+                               session = session,
+                               filetypes = c(" ", "nc", "xlsx", "tif"))
 
-  global <- reactiveValues(datapath = getwd())
+    global <- reactiveValues(spPETdataPath = getwd())
 
-  dir <- reactive(input$dir)
+    output$dir <- renderPrint({
+          global$spPETdataPath
 
-  output$dir <- renderText({
-    global$datapath
-  })
+         })
 
-  observeEvent(ignoreNULL = TRUE,
-               eventExpr = {
-                 input$dir
-               },
-               handlerExpr = {
-                 if (!"path" %in% names(dir())) return()
-                 home <- normalizePath("~")
-                 global$datapath <-
-                   file.path(home, paste(unlist(dir()$path[-1]), collapse = .Platform$file.sep))
-               })
+    observeEvent(ignoreNULL = TRUE,
+                 eventExpr = {
+                   input$dir
+                 },
 
+                 handlerExpr = {
 
-  # output$directorypath <- renderPrint({
-  #   if (is.integer(input$directory)) {
-  #     cat("No directory has been selected !")
-  #   } else {
-  #     shinyFiles::parseDirPath(volumes, input$directory)
-  #   }
-  # })
+    global$spPETdataPath <- file.path(shinyFiles::parseDirPath(roots = spPETroots, input$dir), fsep = .Platform$file.sep)
 
+    output$dir <- renderPrint({
+      file.path(shinyFiles::parseDirPath(roots = spPETroots, input$dir), fsep = .Platform$file.sep)
+          })
 
-
+      })
 
   # render ui for slider ----------------------------------------------------
 
@@ -300,7 +291,8 @@ app_server <- function(input, output, session) {
     DateEnd = lubridate::as_date(input$spPET_DateEnd)
     method = input$spPET_method
     Res = input$ResInput
-    out.dir = global$datapath
+ #   out.dir = global$datapath
+    out.dir <- global$spPETdataPath
     out.file = input$PETspOUTfile
     Elevation.file = spElev_dataInput()
     Tmax.ncFile = spTMAX_dataInput()
@@ -482,8 +474,8 @@ app_server <- function(input, output, session) {
         total = nrow(PET.sp@data))
     }
 
-    PET.rasBRK <- terra::rast(raster::brick(PET.sp))
-    terra::time(PET.rasBRK) <- lubridate::as_date(date.vec)
+     PET.rasBRK <- terra::rast(raster::brick(PET.sp))
+     terra::time(PET.rasBRK) <- lubridate::as_date(date.vec)
 
     # PET.rasBRK <- raster::brick(PET.sp)
     # names(PET.rasBRK) <- lubridate::as_date(date.vec)
@@ -742,31 +734,53 @@ app_server <- function(input, output, session) {
     raster::brick(input$PET_cdfInput$datapath)
   })
 
-  volumes <- c(shinyFiles::getVolumes()())
+  spSWBroots <- c(wd = '.', home = '~', shinyFiles::getVolumes()())
 
   shinyFiles::shinyDirChoose(input, 'dirSWB',
-                             roots = c(home = '~', wd = '.', volumes),
+                             roots = spSWBroots,
                              #  defaultPath='~',
                              defaultRoot='~',
                              allowDirCreate = TRUE,
                              session = session,
-                             filetypes = c(" ", "nc", "xlsx", "tif")
-  )
+                             filetypes = c(" ", "nc", "xlsx", "tif"))
 
-  global <- reactiveValues(datapath = getwd())
-  dirSWB <- reactive(input$dirSWB)
-  output$dirSWB <- renderText({global$datapath})
+  global <- reactiveValues(spSWBdataPath = getwd())
+
+  output$dirSWB <- renderPrint({
+    global$spSWBdataPath
+
+  })
 
   observeEvent(ignoreNULL = TRUE,
                eventExpr = {
                  input$dirSWB
                },
+
                handlerExpr = {
-                 if (!"path" %in% names(dirSWB())) return()
-                 home <- normalizePath("~")
-                 global$datapath <-
-                   file.path(home, paste(unlist(dirSWB()$path[-1]), collapse = .Platform$file.sep))
+
+                 global$spSWBdataPath <- file.path(shinyFiles::parseDirPath(roots = spSWBroots, input$dirSWB), fsep = .Platform$file.sep)
+
+                 output$dirSWB <- renderPrint({
+                   file.path(shinyFiles::parseDirPath(roots = spSWBroots, input$dirSWB), fsep = .Platform$file.sep)
+                 })
+
                })
+
+
+  # global <- reactiveValues(datapath = getwd())
+  # dirSWB <- reactive(input$dirSWB)
+  # output$dirSWB <- renderText({global$datapath})
+  #
+  # observeEvent(ignoreNULL = TRUE,
+  #              eventExpr = {
+  #                input$dirSWB
+  #              },
+  #              handlerExpr = {
+  #                if (!"path" %in% names(dirSWB())) return()
+  #                home <- normalizePath("~")
+  #                global$datapath <-
+  #                  file.path(home, paste(unlist(dirSWB()$path[-1]), collapse = .Platform$file.sep))
+  #              })
 
   # render ui for slider ----------------------------------------------------
 
@@ -802,7 +816,8 @@ app_server <- function(input, output, session) {
     DateStart.SWB = lubridate::as_date(input$spSWB_DateStart)
     DateEnd.SWB =  lubridate::as_date(input$spSWB_DateEnd)
     Res.SWB = input$SWBresInput
-    outDir.SWB = global$datapath
+   # outDir.SWB = global$datapath
+    outDir.SWB = global$spSWBdataPath
     spSWB.outFile =  input$spSWBoutFile
     SWHCFile.SWB = spSWHC_dataInput()
     Rain.ncFile = spRAIN_dataInput()
@@ -866,8 +881,6 @@ data.pet <- pet.ncData[[startdate.SWBindex:enddate.SWBindex]]
 
      for (grd in 1:nrow(AVAILsp@data)) {
 
-       data <- NULL
-
       data <- data.frame(Lat = sp::coordinates(AVAILsp)[,2][grd],
                          Lon = sp::coordinates(AVAILsp)[,1][grd],
                          Year = lubridate::year(dateVec.SWB),
@@ -876,8 +889,8 @@ data.pet <- pet.ncData[[startdate.SWBindex:enddate.SWBindex]]
                          Rain = as.numeric(data.rain.sp@data[grd, ]),
                          Eto = as.numeric(data.pet.sp@data[grd, ]))
 
-   #   if (length(which(is.na(data$Rain))) > 1 || length(which(is.na(data$Eto))) > 1 || is.na(as.numeric(swbSWHCsp@data[grd,]))) {
-      if (is.null(data) | any(is.na(data$Rain)) | any(is.na(data$Eto)) | any(is.na(as.numeric(swbSWHCsp@data[grd,])))) {
+      if (length(which(is.na(data$Rain))) > 1 || length(which(is.na(data$Eto))) > 1 || is.na(as.numeric(swbSWHCsp@data[grd,]))) {
+    #  if (is.null(data) | any(is.na(data$Rain)) | any(is.na(data$Eto)) | any(is.na(as.numeric(swbSWHCsp@data[grd,])))) {
 
         SWBgrd <- data
         SWBgrd$DRAIN <- NA
@@ -1305,10 +1318,10 @@ data.pet <- pet.ncData[[startdate.SWBindex:enddate.SWBindex]]
   })
 
 
-    volumes <- c(shinyFiles::getVolumes()())
+  spWSCroots <- c(wd = '.', home = '~', shinyFiles::getVolumes()())
 
   shinyFiles::shinyDirChoose(input, 'dirWSC',
-                             roots = c(home = '~', wd = '.', volumes),
+                             roots = spWSCroots,
                            #  defaultPath='~',
                              defaultRoot='~',
                              allowDirCreate = TRUE,
@@ -1316,20 +1329,42 @@ data.pet <- pet.ncData[[startdate.SWBindex:enddate.SWBindex]]
                              filetypes = c(" ", "nc", "xlsx", "tif")
   )
 
-  global <- reactiveValues(datapath = getwd())
-  dirWSC <- reactive(input$dirWSC)
-  output$dirWSC <- renderText({global$datapath})
+  global <- reactiveValues(spWSCdataPath = getwd())
+
+  output$dirWSC <- renderPrint({
+    global$spWSCdataPath
+
+  })
 
   observeEvent(ignoreNULL = TRUE,
                eventExpr = {
                  input$dirWSC
                },
+
                handlerExpr = {
-                 if (!"path" %in% names(dirWSC())) return()
-                 home <- normalizePath("~")
-                 global$datapath <-
-                   file.path(home, paste(unlist(dirWSC()$path[-1]), collapse = .Platform$file.sep))
+
+                 global$spWSCdataPath <- file.path(shinyFiles::parseDirPath(roots = spWSCroots, input$dirWSC), fsep = .Platform$file.sep)
+
+                 output$dirWSC <- renderPrint({
+                   file.path(shinyFiles::parseDirPath(roots = spWSCroots, input$dirWSC), fsep = .Platform$file.sep)
+                 })
+
                })
+#
+#   global <- reactiveValues(datapath = getwd())
+#   dirWSC <- reactive(input$dirWSC)
+#   output$dirWSC <- renderText({global$datapath})
+#
+#   observeEvent(ignoreNULL = TRUE,
+#                eventExpr = {
+#                  input$dirWSC
+#                },
+#                handlerExpr = {
+#                  if (!"path" %in% names(dirWSC())) return()
+#                  home <- normalizePath("~")
+#                  global$datapath <-
+#                    file.path(home, paste(unlist(dirWSC()$path[-1]), collapse = .Platform$file.sep))
+#                })
 
   output$spWSCtimeSlider <- renderUI({
 
@@ -1367,7 +1402,8 @@ data.pet <- pet.ncData[[startdate.SWBindex:enddate.SWBindex]]
     DateStart.WSC = lubridate::as_date(input$spWSC_DateStart)
     DateEnd.WSC =  lubridate::as_date(input$spWSC_DateEnd)
     Res.WSC = input$WSCresInput
-    outDir.WSC = global$datapath
+   # outDir.WSC = global$datapath
+    outDir.WSC = global$spWSCdataPath
     outFile.WSC = input$spWSCoutFilePrefix
     onsetWindstart = input$spWSConsetStart               #    "1996-09-01"
     onsetWindend = input$spWSConsetEnd                 #    "1997-01-31"
@@ -1685,7 +1721,7 @@ data.pet <- pet.ncData[[startdate.SWBindex:enddate.SWBindex]]
 ############################################################################################################
  # Automatically stop the shiny app when closing the browser tab
 
-  session$onSessionEnded(stopApp)
+ # session$onSessionEnded(stopApp)
 
 }
 
