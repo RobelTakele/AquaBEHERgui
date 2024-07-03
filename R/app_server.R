@@ -1716,6 +1716,765 @@ data.pet <- pet.ncData[[startdate.SWBindex:enddate.SWBindex]]
     leaflet::leafletProxy("spSeasCALmap", session) %>%
       leaflet.extras2::easyprintMap(sizeModes = input$spWSCscene, filename = input$spWSCmapFileN)
   })
+  
+###################################################################################################
+###################################################################################################
+
+  # ***** Forecast
+  
+  rainTerc_dataInput <- reactive({
+    req(input$rainTerc_xlsxInput)
+    openxlsx::read.xlsx(input$rainTerc_xlsxInput$datapath, sheet = 1)
+  })
+  
+  sesRain_dataInput <- reactive({
+    req(input$sesRain_xlsxInput)
+    openxlsx::read.xlsx(input$sesRain_xlsxInput$datapath, sheet = 1)
+  })
+  
+  fcstVarDF_dataInput <- reactive({
+    req(input$fcstVarDF_xlsxInput)
+    openxlsx::read.xlsx(input$fcstVarDF_xlsxInput$datapath, sheet = 1)
+  })
+  
+  
+  seasFCST_table <- eventReactive(input$FCST_runButton, {
+    
+    rainTerc_dat <- rainTerc_dataInput()
+    sesRain_dat <- sesRain_dataInput()
+    fcstVarDF_dat <- fcstVarDF_dataInput()
+    
+    seasFCSTdata.lst <- AquaBEHER::fcstWSC(sesRain = sesRain_dat,
+                                           var.dF = fcstVarDF_dat,
+                                           rainTerc = rainTerc_dat,
+                                           variable = as.character(input$FCSTvar))
+    
+    seasFCSTdata <- data.frame(seasFCSTdata.lst)
+    seasFCSTdata
+    
+  })
+  
+  output$seasFCSTtable <- DT::renderDataTable(DT::datatable({
+    
+    seasFCST_table()
+    
+  }))
+  
+  
+  output$downloadFCST <- downloadHandler(
+    filename = function() {
+      paste0("FCST_", Sys.Date(), ".xlsx")
+    },
+    content = function(file) {
+      openxlsx::write.xlsx(seasFCST_table(), file)
+    }
+  )
+  
+  # *****************************************************************************
+  
+  plot_FCST <- eventReactive(input$seasFCST_plotButton, {
+    
+    plot.var <- seasFCST_table()
+    
+    plot.var2 <- data.frame(Catagory = c("Below Normal", "Normal", "Above Normal"),
+                            FCST = as.double(t(plot.var)))
+    
+    plotly::plot_ly(data = plot.var2) %>%
+      plotly::add_bars(y = ~ FCST, x = ~Catagory) %>%
+      layout(title = "Seasonal Forecast of WSC",
+             xaxis = list(title = " "),
+             yaxis = list(title = "Tercile Probability (%)"))
+    
+    
+    
+  })
+  
+  output$seasFCSTplot <- plotly::renderPlotly({
+    
+    plot_FCST()
+    
+  })
+  
+  ## ***** Convert CPT to NetCDF
+  
+  cptDF_dataInput <- reactive({
+    req(input$cpt2nc_xlsxInput)
+    openxlsx::read.xlsx(input$cpt2nc_xlsxInput$datapath, sheet = 1)
+  })
+  
+  
+  cpt2nc_roots <- c(wd = '.', home = '~', shinyFiles::getVolumes()())
+  
+  shinyFiles::shinyDirChoose(input, 'dirCDF',
+                             roots = cpt2nc_roots,
+                             #  defaultPath='~',
+                             defaultRoot='~',
+                             allowDirCreate = TRUE,
+                             session = session,
+                             filetypes = c(" ", "nc", "xlsx", "tif")
+  )
+  
+  global <- reactiveValues(cpt2nc_dataPath = getwd())
+  
+  output$dirCDF <- renderPrint({
+    global$cpt2nc_dataPath
+    
+  })
+  
+  observeEvent(ignoreNULL = TRUE,
+               eventExpr = {
+                 input$dirCDF
+               },
+               
+               handlerExpr = {
+                 
+                 global$cpt2nc_dataPath <- file.path(shinyFiles::parseDirPath(roots = cpt2nc_roots,
+                                                                              input$dirCDF),
+                                                     fsep = .Platform$file.sep)
+                 
+                 output$dirCDF <- renderPrint({
+                   file.path(shinyFiles::parseDirPath(roots = cpt2nc_roots,
+                                                      input$dirCDF),
+                             fsep = .Platform$file.sep)
+                 })
+                 
+               })
+  
+  
+  cpt2NetCDF <-  observeEvent(input$cpt2nc_runButton, {
+    
+    data.xlsx <- cptDF_dataInput()
+    
+    lat.length <- input$LATlengthInput
+    lon.length <- input$LONGlengthInput
+    
+    outDir.cpt2nc = global$cpt2nc_dataPath
+    cpt2nc.outFile =  input$cdfFilePrefix
+    DateStart.cpt2nc = lubridate::as_date(input$cpt2nc_date)
+    
+    
+    outputFile.C1 <-  paste0(outDir.cpt2nc, "/", cpt2nc.outFile, "_",
+                             DateStart.cpt2nc, "_C1", ".nc")
+    
+    outputFile.C2 <-  paste0(outDir.cpt2nc, "/", cpt2nc.outFile, "_",
+                             DateStart.cpt2nc, "_C2", ".nc")
+    
+    outputFile.C3 <-  paste0(outDir.cpt2nc, "/", cpt2nc.outFile, "_",
+                             DateStart.cpt2nc, "_C3", ".nc")
+    
+    
+    ###############################################################################
+    ## ***** nc header
+    
+    nc.title <- 'Seasonal Forecast'
+    nc.institution <- 'Crop Genetics Group, Center of Plant Sciences, Sant’Anna School of Advanced Studies, Pisa, Italy'
+    nc.source <- ' INAM'
+    nc.input_data <- ' '
+    nc.reference <- 'AquaBEHER'
+    nc.project_id <- 'FOCUSafrica, CaseStudy-3 (CS3)'
+    nc.experiment_id <- 'WP4'
+    nc.version <- 'V.1.0'
+    nc.version_comment <- 'alpha.test'
+    nc.contact1 <- "Robel Takele/Matteo Dell'Acqua"
+    nc.contact2 <- 'takelerobel.miteku@santannapisa.it/matteo.dellacqua@santannapisa.it'
+    nc.contact3 <- '+251913623066/+251986317965'
+    nc.history <- ''
+    
+    ## ****************************************************************************
+    ## ***** getting dimensions
+    
+    lon.vec <- as.double(data.xlsx[3, 2:length(data.xlsx[1,])])
+    lat.vec <- as.double(data.xlsx[4:(lat.length + 3),1])
+    
+    time.units <- "month since 2023-10-01 06:00:00" # ???????
+    time.calendar <- "standard"
+    time.values <- 1
+    
+    ## ****************************************************************************
+    ## ***** getting variables
+    
+    missing_value <- -9876543210
+    
+    lat.length <- as.numeric(input$LATlengthInput)
+    lon.length <- as.numeric(input$LONGlengthInput)
+    
+    data.C1.dF <- as.matrix(data.xlsx[4:(lat.length + 3),
+                                      2:length(data.xlsx[1,])])
+    
+    data.C2.dF <- as.matrix(data.xlsx[(lat.length + 6):(2*lat.length + 5),
+                                      2:length(data.xlsx[1,])])
+    
+    data.C3.dF <- as.matrix(data.xlsx[(2*lat.length + 8):(3*lat.length + 7),
+                                      2:length(data.xlsx[1,])])
+    
+    prob.dF.C1 <- array(1, dim = c(length(lon.vec), length(lat.vec), 1))
+    prob.dF.C2 <- array(1, dim = c(length(lon.vec), length(lat.vec), 1))
+    prob.dF.C3 <- array(1, dim = c(length(lon.vec), length(lat.vec), 1))
+    
+    for (x in seq_along(lon.vec)) {
+      
+      for (y in seq_along(lat.vec)) {
+        
+        prob.dF.C1[x, y,] <-  data.C1.dF[y, x]
+        prob.dF.C2[x, y,] <-  data.C2.dF[y, x]
+        prob.dF.C3[x, y,] <-  data.C3.dF[y, x]
+        
+      }
+      
+    }
+    
+    ## ****************************************************************************
+    ## ***** define dimentions for NetCDF4
+    
+    lon <- ncdf4::ncdim_def("lon", "degrees_east", as.double(lon.vec),
+                            longname = "Longitude")
+    lat <- ncdf4::ncdim_def("lat", "degrees_north", as.double(lat.vec),
+                            longname = "Latitude")
+    
+    time <- ncdf4::ncdim_def( "time", time.units, time.values,
+                              longname = "Time", unlim = TRUE, calendar = time.calendar)
+    
+    ## *****************************************************************************
+    ## ***** define variable for NetCDF4
+    
+    varz.C1 = ncdf4::ncvar_def("rainProbability.C1", "%",
+                               list(lon,lat,time),
+                               longname="Rainfall Probability for C1)",
+                               missval = missing_value,
+                               prec = "double",
+                               #  shuffle=TRUE,
+                               compression = 9,
+                               verbose = TRUE)
+    
+    varz.C2 = ncdf4::ncvar_def("rainProbability.C2", "%",
+                               list(lon,lat,time),
+                               longname="Rainfall Probability for C2)",
+                               missval = missing_value,
+                               prec = "double",
+                               #  shuffle=TRUE,
+                               compression = 9,
+                               verbose = TRUE)
+    
+    varz.C3 = ncdf4::ncvar_def("rainProbability.C3", "%",
+                               list(lon,lat,time),
+                               longname="Rainfall Probability for C3)",
+                               missval = missing_value,
+                               prec = "double",
+                               #  shuffle=TRUE,
+                               compression = 9,
+                               verbose = TRUE)
+    
+    ## ****************************************************************************
+    ## ***** create NetCDF file for C1
+    
+    nccfs = ncdf4::nc_create(outputFile.C1, varz.C1)
+    
+    ncdf4::ncatt_put(nccfs, varid = 'time', attname = 'units', attval = time.units)
+    ncdf4::ncatt_put(nccfs, varz.C1, attname = 'missing_value', attval = missing_value)
+    
+    ncdf4::ncatt_put(nccfs, varid = 0, attname = 'title', attval = nc.title)
+    ncdf4::ncatt_put(nccfs, varid=0, attname='institution', attval=nc.institution)
+    ncdf4::ncatt_put(nccfs, varid=0, attname='source', attval=nc.source)
+    ncdf4::ncatt_put(nccfs, varid=0, attname='input_data', attval=nc.input_data)
+    ncdf4::ncatt_put(nccfs, varid=0, attname='reference', attval=nc.reference)
+    ncdf4::ncatt_put(nccfs, varid=0, attname='project_id', attval=nc.project_id)
+    ncdf4::ncatt_put(nccfs, varid=0, attname='experiment_id', attval=nc.experiment_id)
+    ncdf4::ncatt_put(nccfs, varid=0, attname='version', attval=nc.version)
+    ncdf4::ncatt_put(nccfs, varid=0, attname='version_comment', attval=nc.version_comment)
+    ncdf4::ncatt_put(nccfs, varid=0, attname='contact1', attval=nc.contact1)
+    ncdf4::ncatt_put(nccfs, varid=0, attname='contact2', attval=nc.contact2)
+    ncdf4::ncatt_put(nccfs, varid=0, attname='contact3', attval=nc.contact3)
+    ncdf4::ncatt_put(nccfs, varid=0, attname='history', attval=nc.history)
+    
+    ncdf4::ncvar_put(nccfs, varz.C1, prob.dF.C1)
+    
+    ncdf4::nc_close(nccfs)
+    
+    ## ****************************************************************************
+    ## ****************************************************************************
+    ## ***** create NetCDF file for C2
+    
+    nccfs = nc_create(outputFile.C2, varz.C2)
+    
+    ncatt_put(nccfs, varid = 'time', attname = 'units', attval = time.units)
+    ncatt_put(nccfs, varz.C2, attname = 'missing_value', attval = missing_value)
+    
+    ncatt_put(nccfs, varid = 0, attname = 'title', attval = nc.title)
+    ncatt_put(nccfs, varid=0, attname='institution', attval=nc.institution)
+    ncatt_put(nccfs, varid=0, attname='source', attval=nc.source)
+    ncatt_put(nccfs, varid=0, attname='input_data', attval=nc.input_data)
+    ncatt_put(nccfs, varid=0, attname='reference', attval=nc.reference)
+    ncatt_put(nccfs, varid=0, attname='project_id', attval=nc.project_id)
+    ncatt_put(nccfs, varid=0, attname='experiment_id', attval=nc.experiment_id)
+    ncatt_put(nccfs, varid=0, attname='version', attval=nc.version)
+    ncatt_put(nccfs, varid=0, attname='version_comment', attval=nc.version_comment)
+    ncatt_put(nccfs, varid=0, attname='contact1', attval=nc.contact1)
+    ncatt_put(nccfs, varid=0, attname='contact2', attval=nc.contact2)
+    ncatt_put(nccfs, varid=0, attname='contact3', attval=nc.contact3)
+    ncatt_put(nccfs, varid=0, attname='history', attval=nc.history)
+    
+    ncvar_put(nccfs, varz.C2, prob.dF.C2)
+    
+    nc_close(nccfs)
+    
+    ## ****************************************************************************
+    ## ***** create NetCDF file for C3
+    
+    nccfs = nc_create(outputFile.C3, varz.C3)
+    
+    ncatt_put(nccfs, varid = 'time', attname = 'units', attval = time.units)
+    ncatt_put(nccfs, varz.C3, attname = 'missing_value', attval = missing_value)
+    
+    ncatt_put(nccfs, varid = 0, attname = 'title', attval = nc.title)
+    ncatt_put(nccfs, varid=0, attname='institution', attval=nc.institution)
+    ncatt_put(nccfs, varid=0, attname='source', attval=nc.source)
+    ncatt_put(nccfs, varid=0, attname='input_data', attval=nc.input_data)
+    ncatt_put(nccfs, varid=0, attname='reference', attval=nc.reference)
+    ncatt_put(nccfs, varid=0, attname='project_id', attval=nc.project_id)
+    ncatt_put(nccfs, varid=0, attname='experiment_id', attval=nc.experiment_id)
+    ncatt_put(nccfs, varid=0, attname='version', attval=nc.version)
+    ncatt_put(nccfs, varid=0, attname='version_comment', attval=nc.version_comment)
+    ncatt_put(nccfs, varid=0, attname='contact1', attval=nc.contact1)
+    ncatt_put(nccfs, varid=0, attname='contact2', attval=nc.contact2)
+    ncatt_put(nccfs, varid=0, attname='contact3', attval=nc.contact3)
+    ncatt_put(nccfs, varid=0, attname='history', attval=nc.history)
+    
+    ncvar_put(nccfs, varz.C3, prob.dF.C3)
+    
+    nc_close(nccfs)
+    
+  } )
+  
+  output$rainTERmap =  leaflet::renderLeaflet({
+    
+    leaflet::leaflet() %>%
+      mapboxapi::addMapboxTiles(style_id = "satellite-streets-v12", username = "mapbox",
+                                access_token = "pk.eyJ1Ijoicm9iZWx0YWtlbGUiLCJhIjoiY2xkb2o4NmRtMDEzcjNubHBkenMycnhiaSJ9.UkdfagqGIy7WjMGXtlT1mQ") %>%
+      
+      leaflet.multiopacity::addOpacityControls(group = "rainTERlayers",
+                                               collapsed = FALSE,
+                                               position = "bottomleft",
+                                               size = "m",
+                                               #  title = "PET Opacity Control:",
+                                               renderOnLayerAdd = TRUE) %>%
+      
+      leaflet::addMiniMap(position = "bottomright",
+                          width = 150,
+                          height = 150) %>%
+      leaflet::setView(lng = 38, lat = -14, zoom = 4)
+  })
+  
+  
+  rainTERmapLeaf <- observeEvent(input$cpt2nc_runButton, {
+    
+    outDir.cpt2nc = global$cpt2nc_dataPath
+    cpt2nc.outFile =  input$cdfFilePrefix
+    DateStart.cpt2nc = lubridate::as_date(input$cpt2nc_date)
+    
+    outputFile.C1 <-  paste0(outDir.cpt2nc, "/", cpt2nc.outFile, "_",
+                             DateStart.cpt2nc, "_C1", ".nc")
+    
+    C1.mapDat <- raster::brick(as.character(outputFile.C1))
+    
+    C1.map_leaflet <- leaflet::projectRasterForLeaflet(C1.mapDat, method = "bilinear")
+    
+    C1.colorPal <- leaflet::colorNumeric(c("#9E0142","#D0384D","#EE6445","#FA9C58",
+                                           "#FDCD7B","#FEF0A7","#F3FAAD","#D0EC9C",
+                                           "#98D5A4","#5CB7A9","#3682BA","#5E4FA2"),
+                                         raster::values( C1.map_leaflet),
+                                         na.color = "transparent")
+    
+    leaflet::leafletProxy("rainTERmap", session) %>%
+      
+      leaflet::addRasterImage(C1.map_leaflet, colors =  C1.colorPal, opacity = 0.8,
+                              group = "rainTERlayers", layerId = "rainTERlayers") %>%
+      
+      leaflet::addLegend(pal = C1.colorPal, values = raster::values(C1.map_leaflet), opacity = 1,
+                         title = "Probability (%)", position = "topright")
+    
+    
+  } )
+  
+  ################################################################################
+  ## ***** Seasonal forecast from sp
+  
+  
+  ncData.C1_dataInput <- reactive({
+    req(input$C1.cdfInput)
+    terra::rast(input$C1.cdfInput$datapath)
+  })
+  
+  ncData.C2_dataInput <- reactive({
+    req(input$C2.cdfInput)
+    terra::rast(input$C2.cdfInput$datapath)
+  })
+  
+  ncData.C3_dataInput <- reactive({
+    req(input$C3.cdfInput)
+    terra::rast(input$C3.cdfInput$datapath)
+  })
+  
+  
+  ncData.seasRAIN_dataInput <- reactive({
+    req(input$seasRain.cdfInput)
+    terra::rast(input$seasRain.cdfInput$datapath)
+  })
+  
+  
+  ncData.fcstVAR_dataInput <- reactive({
+    req(input$fcstVAR.cdfInput)
+    terra::rast(input$fcstVAR.cdfInput$datapath)
+  })
+  
+  
+  FCST_roots <- c(wd = '.', home = '~', shinyFiles::getVolumes()())
+  
+  shinyFiles::shinyDirChoose(input, 'dirFCSTsp',
+                             roots = FCST_roots,
+                             #  defaultPath='~',
+                             defaultRoot='~',
+                             allowDirCreate = TRUE,
+                             session = session,
+                             filetypes = c(" ", "nc", "tif")
+  )
+  
+  global <- reactiveValues(FCST_dataPath = getwd())
+  
+  output$dirFCSTsp <- renderPrint({
+    global$FCST_dataPath
+    
+  })
+  
+  observeEvent(ignoreNULL = TRUE,
+               eventExpr = {
+                 input$dirFCSTsp
+               },
+               
+               handlerExpr = {
+                 
+                 global$FCST_dataPath <- file.path(shinyFiles::parseDirPath(roots = FCST_roots,
+                                                                            input$dirFCSTsp),
+                                                   fsep = .Platform$file.sep)
+                 
+                 output$dirFCSTsp <- renderPrint({
+                   file.path(shinyFiles::parseDirPath(roots = FCST_roots,
+                                                      input$dirFCSTsp),
+                             fsep = .Platform$file.sep)
+                 })
+                 
+               })
+  
+  
+  ## ****************************************************************************
+  
+  FCSTspNetCDF <- eventReactive(input$fcst_runButton, {
+    
+    shinyWidgets::progressSweetAlert(
+      session = session, id = "FCSTprogress",
+      title = h4(paste0(" Seasonal forecast is in Progress ....."),
+                 style = "color: #FD1C03; font-style: bold; font-family: times;"),
+      display_pct = TRUE, value = 0, striped = TRUE, width = '55%')
+    
+    DateStart = lubridate::as_date(input$obsWSC_DateStart)
+    DateEnd = lubridate::as_date(input$obsWSC_DateEnd)
+    
+    estYears <- lubridate::year(DateStart) : lubridate::year(DateEnd)
+    
+    fcstVAR.name <- as.character(spFCSTnames[as.numeric(input$FCSTvar.mapview)]) # input$FCSTvar
+    
+    fcstYear = lubridate::year(lubridate::as_date(input$FCST_Date))
+    fcstMonth = lubridate::month(lubridate::as_date(input$FCST_Date))
+    fcstDay = lubridate::day(lubridate::as_date(input$FCST_Date))
+    
+    C1.ncFile = ncData.C1_dataInput()
+    C2.ncFile = ncData.C2_dataInput()
+    C3.ncFile = ncData.C3_dataInput()
+    
+    C1.ncFile[C1.ncFile < 0] <- NA
+    C2.ncFile[C2.ncFile < 0] <- NA
+    C3.ncFile[C3.ncFile < 0] <- NA
+    
+    ncFile.rain = ncData.seasRAIN_dataInput()
+    rain.nms.date.vec <- lubridate::year(lubridate::as_date(terra::time(ncFile.rain)))
+    startdate.index <- which(rain.nms.date.vec == lubridate::year(DateStart))
+    enddate.index <- which(rain.nms.date.vec == lubridate::year(DateEnd))
+    ncFile.rain <- ncFile.rain[[startdate.index:enddate.index]]
+    
+    ncData.rain <- terra::crop(ncFile.rain, terra::ext(C1.ncFile))
+    ncData.rain.r <- raster::brick(terra::resample(ncData.rain, C1.ncFile,
+                                                   method = "bilinear"))
+    ncData.rain.r <- raster::mask(ncData.rain.r, raster::brick(C1.ncFile))
+    rain.SpGdF <- as(ncData.rain.r, "SpatialGridDataFrame")
+    
+    ncFile.fcstVAR = ncData.fcstVAR_dataInput()
+    fcstVAR.nms.date.vec <- lubridate::year(lubridate::as_date(terra::time(ncFile.fcstVAR)))
+    startdate.index <- which(fcstVAR.nms.date.vec == lubridate::year(DateStart))
+    enddate.index <- which(fcstVAR.nms.date.vec == lubridate::year(DateEnd))
+    ncFile.fcstVAR <- ncFile.fcstVAR[[startdate.index:enddate.index]]
+    
+    ncData.fcstVAR <- terra::crop(ncFile.fcstVAR, terra::ext(C1.ncFile))
+    ncData.fcstVAR.r <- raster::brick(terra::resample(ncData.fcstVAR,
+                                                      C1.ncFile,
+                                                      method = "bilinear"))
+    ncData.fcstVAR.r <- raster::mask(ncData.fcstVAR.r, raster::brick(C1.ncFile))
+    fcstVAR.SpGdF <- as(ncData.fcstVAR.r, "SpatialGridDataFrame")
+    
+    C1.SpGdF <- as(raster::brick(C1.ncFile), "SpatialGridDataFrame")
+    C2.SpGdF <- as(raster::brick(C2.ncFile), "SpatialGridDataFrame")
+    C3.SpGdF <- as(raster::brick(C3.ncFile), "SpatialGridDataFrame")
+    
+    ncData.fcstVAR.r <- terra::rast(ncData.fcstVAR.r)
+    fcstVAREnse.SpGdF <- C1.SpGdF
+    fcstVAREnse.SpGdF@data <- data.frame(matrix(data = NA,
+                                                nrow = nrow(fcstVAREnse.SpGdF@data),
+                                                ncol = 3))
+    
+    colnames(fcstVAREnse.SpGdF@data) <- c("BN", "NN", "AN")
+    
+    rainTer.SpGdF <- C1.SpGdF
+    rainTer.SpGdF@data$C1 <- C1.SpGdF@data[,1]
+    rainTer.SpGdF@data$C2 <- C2.SpGdF@data[,1]
+    rainTer.SpGdF@data$C3 <- C3.SpGdF@data[,1]
+    
+    ## ***** resampling ensembles onset
+    
+    for (grd in seq_along(C1.SpGdF@data[,1])) {
+      
+      #   for (grd in seq_along(1:2000)) {
+      
+      sR.xy <- data.frame("Year" = estYears,
+                          "sRain" = as.double(rain.SpGdF@data[grd, ]))
+      
+      fcstVAR.xy <- data.frame(Year = estYears,
+                               fcstVAR.val = as.double(fcstVAR.SpGdF@data[grd, ]))
+      
+      if (fcstVAR.name == "onset") {
+        
+        colnames(fcstVAR.xy) <- c("Year", "onset.Value")
+        
+      } else {
+        
+        colnames(fcstVAR.xy) <- c("Year", "cessation.Value")
+        
+      }
+      
+      rainTercile.xy <- data.frame(T1 = as.double(rainTer.SpGdF@data$C1[grd])/100,
+                                   T2 = as.double(rainTer.SpGdF@data$C2[grd])/100,
+                                   T3 = as.double(rainTer.SpGdF@data$C3[grd])/100)
+      
+      if (length(which(is.na(sR.xy$sRain))) > round(length(sR.xy$sRain)*0.1) |
+          length(which(is.na(fcstVAR.xy[,2]))) > round(length(fcstVAR.xy[,2])*0.4) |
+          length(which(!is.na(rainTercile.xy))) < 3 ) {
+        
+        fcstVAREnse.SpGdF@data[grd, ] <- fcstVAREnse.SpGdF@data[grd, ]
+        
+      } else {
+        
+        fcstVAREns.xy <- AquaBEHER::fcstWSC(sesRain = sR.xy,
+                                            var.dF = fcstVAR.xy,
+                                            rainTerc = rainTercile.xy,
+                                            variable = fcstVAR.name)
+        
+        fcstVAREnse.SpGdF@data[grd, ] <- fcstVAREns.xy
+        
+      }
+      
+      Sys.sleep(0.1)
+      shinyWidgets::updateProgressBar(
+        session = session,
+        id = "FCSTprogress",
+        value = grd,
+        total = nrow(C1.SpGdF@data))
+      
+      
+    }
+    
+    
+    fcstVAREnse.rasBRK <- terra::rast(fcstVAREnse.SpGdF)
+    
+    
+    fcstYear = lubridate::year(lubridate::as_date(input$FCST_Date))
+    fcstMonth = lubridate::month(lubridate::as_date(input$FCST_Date))
+    
+    
+    outputFile.FCST.terC <-  paste0(global$FCST_dataPath, "/",
+                                    input$spFCSToutFilePrefix, "_",
+                                    as.character(spFCSTnames[as.numeric(input$FCSTvar.mapview)]), "_",
+                                    fcstMonth, fcstYear, "_terProbs.nc")
+    
+    
+    terra::writeCDF(x =  fcstVAREnse.rasBRK,
+                    filename = outputFile.FCST.terC,
+                    varname = paste0(as.character(spFCSTnames[as.numeric(input$FCSTvar.mapview)])),
+                    longname = paste0("Tercile Probabilities"),
+                    unit = "%",
+                    zname = 'time',
+                    prec = "double",
+                    compression = 9,
+                    missval = -9876543210,
+                    atts = nc.att,
+                    overwrite = TRUE)
+    
+    ## ****************************************************************************
+    ## *** Debuging
+    
+    
+    # rast <- raster::brick(paste0("/home/robel/Downloads/test.nc"))
+    #  fcstVAREnse.SpGdF <- as(rast, "SpatialGridDataFrame")
+    
+    
+    fcstVAR.probTerc.spGdF <- fcstVAREnse.SpGdF
+    fcstVAR.probTerc.spGdF@data <- data.frame(matrix(NA, nrow = nrow(fcstVAREnse.SpGdF@data),
+                                                     ncol = 1))
+    
+    for (grd in seq_along(fcstVAR.probTerc.spGdF@data[,1])) {
+      
+      terMax <- NA
+      probTerc.grd <- NA
+      
+      # terCount <- table(as.numeric(onsetEnse.SpGdF@data[grd, ]))
+      terVec <- as.numeric(fcstVAREnse.SpGdF@data[grd, ])
+      # terMax <- as.numeric(which(terCount == max(terCount))[1])
+      
+      if (!is.na(terVec[1])) {
+        terMax <- as.numeric(which.max(terVec))
+        probTerc.grd <- round(terVec[terMax], digits = 2)
+      }
+      
+      if (!is.na(terMax) & terMax == 2) {
+        probTerc.grd <- 0
+      } else if (!is.na(terMax) & terMax == 1) {
+        probTerc.grd <- (-1)* probTerc.grd
+      }
+      
+      fcstVAR.probTerc.spGdF@data[grd,] <- probTerc.grd
+      
+    }
+    
+    fcstVAR.probTerc.rast <- terra::rast(fcstVAR.probTerc.spGdF)
+    
+    terra::time(fcstVAR.probTerc.rast) <-  lubridate::as_date(paste0(fcstYear, "-",
+                                                                     fcstMonth, "-",
+                                                                     fcstDay))
+    
+    
+    probTerc.noisy.raster <- raster(fcstVAR.probTerc.rast)
+    
+    # Define the size of the median filter kernel (adjust as needed)
+    filter_size <- c(3, 3)  # Adjust the size as needed
+    
+    # Apply the median filter to smooth the raster data
+    probTerc.smooth.raster <- focal(probTerc.noisy.raster, w = matrix(1, nrow = filter_size[1], ncol = filter_size[2]),
+                                    fun = median, na.rm = TRUE)
+    
+    
+    outputFile.FCST.MstRerC <-  paste0(global$FCST_dataPath, "/",
+                                       input$spFCSToutFilePrefix, "_",
+                                       as.character(spFCSTnames[as.numeric(input$FCSTvar.mapview)]), "_",
+                                       fcstMonth, fcstYear, "_mostLikely_terProbs.nc")
+    
+    terra::writeCDF(terra::rast(probTerc.smooth.raster),
+                    filename = outputFile.FCST.MstRerC,
+                    varname = paste0(as.character(spFCSTnames[as.numeric(input$FCSTvar.mapview)]),
+                                     ".tercileProb"),
+                    longname = paste0("most likely tercile probability of",
+                                      as.character(spFCSTnames[as.numeric(input$FCSTvar.mapview)]),
+                                      "forecasts"),
+                    unit = '%',
+                    zname = 'time',
+                    prec = "double",
+                    compression = 9,
+                    missval = -9876543210,
+                    atts = nc.att,
+                    overwrite = TRUE)
+    
+    
+    shinyWidgets::closeSweetAlert(session = session)
+    shinyWidgets::sendSweetAlert(
+      session = session,
+      title =" Forecast completed !",
+      type = "success"
+    )
+    
+    probTerc.smooth.raster
+    
+  } )
+  
+  
+  output$FCSTmap =  leaflet::renderLeaflet({
+    
+    leaflet::leaflet() %>%
+      mapboxapi::addMapboxTiles(style_id = "satellite-streets-v12", username = "mapbox",
+                                access_token = "pk.eyJ1Ijoicm9iZWx0YWtlbGUiLCJhIjoiY2xkb2o4NmRtMDEzcjNubHBkenMycnhiaSJ9.UkdfagqGIy7WjMGXtlT1mQ") %>%
+      
+      leaflet.multiopacity::addOpacityControls(group = "FCSTlayers",
+                                               collapsed = FALSE,
+                                               position = "bottomleft",
+                                               size = "m",
+                                               #  title = "PET Opacity Control:",
+                                               renderOnLayerAdd = TRUE) %>%
+      
+      leaflet::addMiniMap(position = "bottomright",
+                          width = 150,
+                          height = 150) %>%
+      leaflet::setView(lng = 38, lat = -14, zoom = 4)
+  })
+  
+  
+  
+  FCSTmap.eventTrigger <- reactive({
+    list(input$FCSTvar.mapview, input$FCST_Date)
+  })
+  
+  
+  # observeEvent(input$FCSTvar, {
+  
+  #  spFCSTNamIndex <- which((spFCSTnames) == as.character(input$FCSTvar.mapview))
+  
+  output$FCSTmapTitle <- renderText({paste0("Seasonal Forecast : ",
+                                            as.character(spFCSTnames[as.numeric(input$FCSTvar.mapview)]))})
+  
+  # output$FCSTmapTitle <- renderText({paste0("Seasonal Forecast : ",
+  #                                           as.character(spFCSTnames[as.numeric(spFCSTNamIndex)]))})
+  # })
+  
+  
+  observeEvent(input$fcst_runButton, {
+    
+    FCSTmap.Dat <- FCSTspNetCDF()
+    FCSTmap.mapDat <- raster::brick(FCSTmap.Dat)
+    
+    FCSTmap.leaflet <- leaflet::projectRasterForLeaflet(FCSTmap.mapDat,
+                                                        method = "bilinear")
+    
+    colPal <- c("#3288BD", "#66C2A5", "#ABDDA4", "#E6F598", "#FFFFBF",
+                "#FEE08B", "#FDAE61", "#F46D43", "#D53E4F")
+    
+    FCSTmap.colorPal <- leaflet::colorNumeric(colPal, raster::values(FCSTmap.leaflet),
+                                              na.color = "transparent")
+    
+    leaflet::leafletProxy("FCSTmap", session) %>%
+      
+      leaflet::addRasterImage(FCSTmap.leaflet, colors = FCSTmap.colorPal,
+                              opacity = 0.8)  %>%
+      
+      leaflet::addLegend(pal = FCSTmap.colorPal,
+                         values = values(FCSTmap.leaflet),
+                         title = "Probability") %>%
+      
+      leaflet.extras2::addEasyprint(options = leaflet.extras2::easyprintOptions(exportOnly = FALSE,
+                                                                                hidden = FALSE,
+                                                                                hideControlContainer = FALSE))
+    
+  } )
+  
+  observeEvent(input$printFCSTmap, {
+    leaflet::leafletProxy("FCSTmap", session) %>%
+      leaflet.extras2::easyprintMap(sizeModes = input$scene, filename = input$FCSTmapFileN)
+  })
+  
+  
+
 
 ############################################################################################################
 ############################################################################################################

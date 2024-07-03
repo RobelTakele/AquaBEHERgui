@@ -32,7 +32,7 @@ mod_spWSC_ui <- function(id){
 
                  shinyWidgets::airDatepickerInput(
                    inputId = "spWSC_DateEnd",
-                   label = "Start Date (yyyy-MM-dd):",
+                   label = "End Date (yyyy-MM-dd):",
                    separator = " - ",
                    dateFormat = "yyyy-MM-dd",
                    autoClose = TRUE,
@@ -47,7 +47,7 @@ mod_spWSC_ui <- function(id){
 
                  shinyWidgets::airDatepickerInput(
                    inputId = "spWSConsetStart",
-                   label = "Start Date (yyyy-MM-dd):",
+                   label = "Onset window start date (yyyy-MM-dd):",
                    separator = " - ",
                    dateFormat = "yyyy-MM-dd",
                    autoClose = TRUE,
@@ -56,7 +56,7 @@ mod_spWSC_ui <- function(id){
 
                  shinyWidgets::airDatepickerInput(
                    inputId = "spWSConsetEnd",
-                   label = "Start Date (yyyy-MM-dd):",
+                   label = "Onset window end date (yyyy-MM-dd):",
                    separator = " - ",
                    dateFormat = "yyyy-MM-dd",
                    autoClose = TRUE,
@@ -65,7 +65,7 @@ mod_spWSC_ui <- function(id){
 
                  shinyWidgets::airDatepickerInput(
                    inputId = "spWSCcessEnd",
-                   label = "Start Date (yyyy-MM-dd):",
+                   label = "Cessation window end date (yyyy-MM-dd):",
                    separator = " - ",
                    dateFormat = "yyyy-MM-dd",
                    autoClose = TRUE,
