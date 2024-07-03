@@ -1,0 +1,11 @@
+.Rproj.user
+.Rhistory
+.Rdata
+.httr-oauth
+.DS_Store
+packrat/lib*/
+docs
+inst/doc
+/doc/
+/Meta/
+.quarto
