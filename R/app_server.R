@@ -23,7 +23,7 @@ jscode <- "shinyjs.closeWindow = function() { window.close(); }"
  # library(AquaBEHER)
  # library(ncdf4)
  # library(sp)
- # library(raster)
+  library(raster)
 # library(magrittr)
 
 # suppressPackageStartupMessages({
@@ -2358,7 +2358,7 @@ data.pet <- pet.ncData[[startdate.SWBindex:enddate.SWBindex]]
                                                                      fcstDay))
     
     
-    probTerc.noisy.raster <- raster(fcstVAR.probTerc.rast)
+    probTerc.noisy.raster <- raster::raster(fcstVAR.probTerc.rast)
     
     # Define the size of the median filter kernel (adjust as needed)
     filter_size <- c(3, 3)  # Adjust the size as needed
