@@ -70,6 +70,7 @@ spWSCcolPal  <- list(rev(c("#440154","#462777","#3D4988","#30678D","#25818E","#1
                      rev(c("#780085","#7F2FD1","#686DF9","#4C9ED9","#3FC29F","#53DA60","#85EB50","#C1EC58","#E4D05C","#F9965B")),
                      rev(c("#780085","#7F2FD1","#686DF9","#4C9ED9","#3FC29F","#53DA60","#85EB50","#C1EC58","#E4D05C","#F9965B")))
 
+
 spFCSTnames <- c("onset", "cessation")
 
 nc.att <- c("Institution=Sant’Anna School of Advanced Studies (SSSA)",
@@ -104,6 +105,9 @@ app_ui <- function(request) {
 
                       ),
 
+    navbarMenu("Preparing Data",
+              tabPanel("CPT to NetCDF", mod_cpt2nc_ui("cpt2nc_1"))),
+
     navbarMenu("PET",
               tabPanel("From Location Data", mod_locPET_ui("locPET_1")),
               tabPanel("From Gridded Data", mod_spPET_ui("spPET_1"))),
@@ -115,10 +119,7 @@ app_ui <- function(request) {
     navbarMenu("Seasonal Calendar",
                tabPanel("From Location Data", mod_locWSC_ui("locWSC_1")),
                tabPanel("From Gridded Data", mod_spWSC_ui("spWSC_1"))),
-    
-    navbarMenu("Preparing Data",
-               tabPanel("CPT to NetCDF", mod_cpt2nc_ui("cpt2nc_1"))),
-    
+
     navbarMenu("Seasonal Forecast",
                tabPanel("From Location Data", mod_locFCST_ui("locFCST_1")),
                tabPanel("From Gridded Data", mod_spFCST_ui("spFCST_1")))

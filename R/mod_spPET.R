@@ -159,7 +159,19 @@ mod_spPET_ui <- function(id){
                                                        style = "jelly",
                                                        #   style = "color: #fff; background-color: #27ae60; border-color: #fff;",
                                                        icon = icon("save"),
-                                                       block = TRUE))
+                                                       block = TRUE)),
+
+                       column(3, offset = 0,
+
+                              shinyWidgets::downloadBttn(outputId = 'downloadPETnc',
+                                                         label = "Save NetCDF Data",
+                                                         color = "success",
+                                                         size = 'md',
+                                                         style = "jelly",
+                                                         icon = icon("download"),
+                                                         block = FALSE)
+
+                       )
 
                      )
 
