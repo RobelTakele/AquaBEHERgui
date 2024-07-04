@@ -30,7 +30,7 @@ mod_spSWB_ui <- function(id){
 
                  shinyWidgets::airDatepickerInput(
                    inputId = "spSWB_DateEnd",
-                   label = "Start Date (yyyy-MM-dd):",
+                   label = "End Date (yyyy-MM-dd):",
                    separator = " - ",
                    dateFormat = "yyyy-MM-dd",
                    autoClose = TRUE,

@@ -180,57 +180,59 @@ app_server <- function(input, output, session) {
 ################################################################################
 #   # ***** PET Gridded
 
+  #   # ***** PET Gridded
+  
   spElev_dataInput <- reactive({
     req(input$Elev_tifInput)
     raster::brick(input$Elev_tifInput$datapath)
   })
-
+  
   spTMAX_dataInput <- reactive({
     req(input$Tmax_cdfInput)
     raster::brick(input$Tmax_cdfInput$datapath)
   })
-
+  
   spTMIN_dataInput <- reactive({
     req(input$Tmin_cdfInput)
     raster::brick(input$Tmin_cdfInput$datapath)
   })
-
+  
   spPETroots <- c(wd = '.', home = '~', shinyFiles::getVolumes()())
-
-    shinyFiles::shinyDirChoose(input, 'dir',
-                               roots = spPETroots,
-                               #  defaultPath='~',
-                               defaultRoot='~',
-                               allowDirCreate = TRUE,
-                               session = session,
-                               filetypes = c(" ", "nc", "xlsx", "tif"))
-
-    global <- reactiveValues(spPETdataPath = getwd())
-
-    output$dir <- renderPrint({
-          global$spPETdataPath
-
-         })
-
-    observeEvent(ignoreNULL = TRUE,
-                 eventExpr = {
-                   input$dir
-                 },
-
-                 handlerExpr = {
-
-    global$spPETdataPath <- file.path(shinyFiles::parseDirPath(roots = spPETroots, input$dir), fsep = .Platform$file.sep)
-
-    output$dir <- renderPrint({
-      file.path(shinyFiles::parseDirPath(roots = spPETroots, input$dir), fsep = .Platform$file.sep)
-          })
-
-      })
-
+  
+  shinyFiles::shinyDirChoose(input, 'dir',
+                             roots = spPETroots,
+                             #  defaultPath='~',
+                             defaultRoot='~',
+                             allowDirCreate = TRUE,
+                             session = session,
+                             filetypes = c(" ", "nc", "xlsx", "tif"))
+  
+  global <- reactiveValues(spPETdataPath = getwd())
+  
+  output$dir <- renderPrint({
+    global$spPETdataPath
+    
+  })
+  
+  observeEvent(ignoreNULL = TRUE,
+               eventExpr = {
+                 input$dir
+               },
+               
+               handlerExpr = {
+                 
+                 global$spPETdataPath <- file.path(shinyFiles::parseDirPath(roots = spPETroots, input$dir), fsep = .Platform$file.sep)
+                 
+                 output$dir <- renderPrint({
+                   file.path(shinyFiles::parseDirPath(roots = spPETroots, input$dir), fsep = .Platform$file.sep)
+                 })
+                 
+               })
+  
   # render ui for slider ----------------------------------------------------
-
+  
   output$slider <- renderUI({
-
+    
     sliderInput("year","PET Time Slider: ",
                 min = (lubridate::as_date(input$spPET_DateStart)),
                 max = (lubridate::as_date(input$spPET_DateEnd)),
@@ -240,70 +242,70 @@ app_server <- function(input, output, session) {
                 #     timezone = "+0000",
                 animate = TRUE)
   })
-
+  
   PETspNetCDF <- eventReactive(input$PETsp_runButton, {
-
+    
     shinyWidgets::progressSweetAlert(
       session = session, id = "myprogress",
       title = h4(paste0("PET Estimation Using ", spPETmetNam[which((spPETmetNamS) == as.character(input$spPET_method))],
                         " Formulation is in Progress ....."), style = "color: #FD1C03; font-style: bold; font-family: times;"),
       display_pct = TRUE, value = 0, striped = TRUE, width = '55%')
-
-
+    
+    
     SRAD.ncFile = NULL
     Tdew.ncFile = NULL
     U10.ncFile = NULL
-
+    
     if (input$spPET_method == "PT" || input$spPET_method == "PM") {
-
+      
       spSRAD_dataInput <- reactive({
         req(input$SRAD_cdfInput)
         raster::brick(input$SRAD_cdfInput$datapath)
       })
-
+      
       spTdew_dataInput <- reactive({
         req(input$Tdew_cdfInput)
         raster::brick(input$Tdew_cdfInput$datapath)
       })
-
+      
       SRAD.ncFile = spSRAD_dataInput()
       Tdew.ncFile = spTdew_dataInput()
-
+      
     }
-
+    
     if (input$spPET_method == "PM") {
-
+      
       spU10_dataInput <- reactive({
         req(input$U10_cdfInput)
         raster::brick(input$U10_cdfInput$datapath)
       })
-
+      
       U10.ncFile = spU10_dataInput()
-
+      
     }
-
-
+    
+    
     DateStart = lubridate::as_date(input$spPET_DateStart)
     DateEnd = lubridate::as_date(input$spPET_DateEnd)
     method = input$spPET_method
     Res = input$ResInput
- #   out.dir = global$datapath
+    #   out.dir = global$datapath
     out.dir <- global$spPETdataPath
     out.file = input$PETspOUTfile
     Elevation.file = spElev_dataInput()
     Tmax.ncFile = spTMAX_dataInput()
     Tmin.ncFile = spTMIN_dataInput()
-
+    
     date.vec <- seq.Date(from = lubridate::as_date(DateStart), to = lubridate::as_date(DateEnd), by = "day")
-
+    
     tmax.ncData.r <- raster::raster(Tmax.ncFile[[1]])
     r.tmplt <- raster::raster(raster::extent(tmax.ncData.r), resolution = Res,
                               crs = raster::crs(tmax.ncData.r), vals = 1)
     r.sp <- as(r.tmplt, "SpatialGridDataFrame")
-
+    
     elev.ras <- raster::resample(Elevation.file, r.tmplt, method = "ngb")
     elev.sp <- as(elev.ras, "SpatialGridDataFrame")
-
+    
     tmax.ncData <- Tmax.ncFile
     tmax.nms <- names(tmax.ncData)
     tmax.nms.date.vec <- lubridate::as_date(paste0(substr(tmax.nms, 2, 5), "-", substr(tmax.nms, 7, 8), "-",
@@ -311,7 +313,7 @@ app_server <- function(input, output, session) {
     startdate.index <- which(tmax.nms.date.vec == DateStart)
     enddate.index <- which(tmax.nms.date.vec == DateEnd)
     data.tmax <- tmax.ncData[[startdate.index:enddate.index]]
-
+    
     tmin.ncData <- Tmin.ncFile
     tmin.nms <- names(tmin.ncData)
     tmin.nms.date.vec <- lubridate::as_date(paste0(substr(tmin.nms, 2, 5), "-", substr(tmin.nms, 7, 8), "-",
@@ -319,9 +321,9 @@ app_server <- function(input, output, session) {
     startdate.index <- which(tmin.nms.date.vec == DateStart)
     enddate.index <- which(tmin.nms.date.vec == DateEnd)
     data.tmin <- tmin.ncData[[startdate.index:enddate.index]]
-
+    
     if (!is.null(SRAD.ncFile)) {
-
+      
       srad.ncData <- SRAD.ncFile
       srad.nms <- names(srad.ncData)
       srad.nms.date.vec <- lubridate::as_date(paste0(substr(srad.nms, 2, 5), "-", substr(srad.nms, 7, 8), "-",
@@ -330,9 +332,9 @@ app_server <- function(input, output, session) {
       enddate.index <- which(srad.nms.date.vec == DateEnd)
       data.srad <- srad.ncData[[startdate.index:enddate.index]]
     }
-
+    
     if (!is.null(Tdew.ncFile)) {
-
+      
       tdew.ncData <- Tdew.ncFile
       tdew.nms <- names(tdew.ncData)
       tdew.nms.date.vec <- lubridate::as_date(paste0(substr(tdew.nms, 2, 5), "-", substr(tdew.nms, 7, 8), "-",
@@ -340,11 +342,11 @@ app_server <- function(input, output, session) {
       startdate.index <- which(tdew.nms.date.vec == DateStart)
       enddate.index <- which(tdew.nms.date.vec == DateEnd)
       data.tdew <- tdew.ncData[[startdate.index:enddate.index]]
-
+      
     }
-
+    
     if (!is.null(U10.ncFile)) {
-
+      
       u10.ncData <- U10.ncFile
       u10.nms <- names(u10.ncData)
       u10.nms.date.vec <- lubridate::as_date(paste0(substr(u10.nms, 2, 5), "-", substr(u10.nms, 7, 8), "-",
@@ -352,75 +354,75 @@ app_server <- function(input, output, session) {
       startdate.index <- which(u10.nms.date.vec == DateStart)
       enddate.index <- which(u10.nms.date.vec == DateEnd)
       data.u10 <- u10.ncData[[startdate.index:enddate.index]]
-
+      
     }
-
+    
     # *********************************************************************************************************************
-
+    
     doParallel::registerDoParallel(cores = 4)
-
+    
     tmax.sp.list <- foreach::foreach(d = 1 : length(date.vec)) %dopar% {
       as(raster::resample(data.tmax[[d]], r.tmplt, method = "bilinear"), "SpatialGridDataFrame")
     }
-
+    
     data.tmax.sp <- docall(sp::cbind.Spatial, tmax.sp.list)
-
+    
     tmin.sp.list <- foreach::foreach(d = 1 : length(date.vec)) %dopar% {
       as(raster::resample(data.tmin[[d]], r.tmplt, method = "bilinear"), "SpatialGridDataFrame")
     }
-
+    
     data.tmin.sp <- docall(sp::cbind.Spatial, tmin.sp.list)
-
-
+    
+    
     tmin.sp.list <- foreach::foreach(d = 1 : length(date.vec)) %dopar% {
       as(raster::resample(data.tmin[[d]], r.tmplt, method = "bilinear"), "SpatialGridDataFrame")
     }
-
+    
     data.tmin.sp <- docall(sp::cbind.Spatial, tmin.sp.list)
-
+    
     if (!is.null(SRAD.ncFile)) {
-
+      
       srad.sp.list <- foreach::foreach(d = 1 : length(date.vec)) %dopar% {
         as(raster::resample(data.srad[[d]], r.tmplt, method = "bilinear"), "SpatialGridDataFrame")
       }
-
+      
       data.srad.sp <- docall(sp::cbind.Spatial, srad.sp.list)
-
+      
     }
-
+    
     if (!is.null(Tdew.ncFile)) {
-
+      
       tdew.sp.list <- foreach::foreach(d = 1 : length(date.vec)) %dopar% {
-
+        
         as(raster::resample(data.tdew[[d]], r.tmplt, method = "bilinear"), "SpatialGridDataFrame")
       }
-
+      
       data.tdew.sp <- docall(sp::cbind.Spatial, tdew.sp.list)
-
+      
     }
-
+    
     if (!is.null(U10.ncFile)) {
-
-
+      
+      
       u10.sp.list <- foreach::foreach(d = 1 : length(date.vec)) %dopar% {
-
+        
         as(raster::resample(data.u10[[d]], r.tmplt, method = "bilinear"), "SpatialGridDataFrame")
       }
-
+      
       data.u10.sp <- docall(sp::cbind.Spatial, u10.sp.list)
-
-
+      
+      
     }
-
+    
     # **********************************************************************************************************************
-
+    
     PET.sp <- r.sp
     PET.sp@data <- data.frame(matrix(NA, nrow = nrow(r.sp@data), ncol = length(date.vec)))
-
+    
     for (grd in 1:nrow(PET.sp@data)) {
-
+      
       if (method == "HS") {
-
+        
         data <- data.frame(Lat = sp::coordinates(PET.sp)[,2][grd],
                            Lon = sp::coordinates(PET.sp)[,1][grd],
                            Elev = elev.sp@data[grd, ],
@@ -429,10 +431,10 @@ app_server <- function(input, output, session) {
                            Day = lubridate::day(date.vec),
                            Tmax = as.numeric(data.tmax.sp@data[grd, ]),
                            Tmin = as.numeric(data.tmin.sp@data[grd, ]))
-
+        
       } else if (method == "PT") {
-
-
+        
+        
         data <- data.frame(Lat = sp::coordinates(PET.sp)[,2][grd],
                            Lon = sp::coordinates(PET.sp)[,1][grd],
                            Elev = elev.sp@data[grd, ],
@@ -443,9 +445,9 @@ app_server <- function(input, output, session) {
                            Tmin = as.numeric(data.tmin.sp@data[grd, ]),
                            Rs = as.numeric(data.srad.sp@data[grd, ]),
                            Tdew = as.numeric(data.tdew.sp@data[grd, ]))
-
+        
       } else if (method == "PM") {
-
+        
         data <- data.frame(Lat = sp::coordinates(PET.sp)[,2][grd],
                            Lon = sp::coordinates(PET.sp)[,1][grd],
                            Elev = elev.sp@data[grd, ],
@@ -458,10 +460,10 @@ app_server <- function(input, output, session) {
                            Tdew = as.numeric(data.tdew.sp@data[grd, ]),
                            Uz = as.numeric(data.u10.sp@data[grd, ]))
       }
-
+      
       PET.grd <- AquaBEHER::calcEto(data = data, method = method, crop = "short", Zh = 10)
       PET.sp@data[grd,] <- as.numeric(PET.grd$ET.Daily)
-
+      
       Sys.sleep(0.1)
       shinyWidgets::updateProgressBar(
         session = session,
@@ -469,31 +471,31 @@ app_server <- function(input, output, session) {
         value = grd,
         total = nrow(PET.sp@data))
     }
-
-     PET.rasBRK <- terra::rast(raster::brick(PET.sp))
-     terra::time(PET.rasBRK) <- lubridate::as_date(date.vec)
-
+    
+    PET.rasBRK <- terra::rast(raster::brick(PET.sp))
+    terra::time(PET.rasBRK) <- lubridate::as_date(date.vec)
+    
     # PET.rasBRK <- raster::brick(PET.sp)
     # names(PET.rasBRK) <- lubridate::as_date(date.vec)
-#
-#     terra::writeCDF(PET.rasBRK,
-#                     filename = paste0(out.dir, "/",  out.file, "_",
-#                                       Res, "_", method, "_", DateStart,"_T_",
-#                                       DateEnd, ".nc"),
-#                     varname = "PET",
-#                     longname = paste0("Potential Evapotranspiration [", method, "]"),
-#                     unit = 'mm',
-#                     zname = 'time',
-#                     prec = "double",
-#                     compression = 9,
-#                     missval = -9876543210,
-#                     overwrite = TRUE)
-
-    spPEToutputDir <- "Output/Data/PET/"
-
-
+    #
+    #     terra::writeCDF(PET.rasBRK,
+    #                     filename = paste0(out.dir, "/",  out.file, "_",
+    #                                       Res, "_", method, "_", DateStart,"_T_",
+    #                                       DateEnd, ".nc"),
+    #                     varname = "PET",
+    #                     longname = paste0("Potential Evapotranspiration [", method, "]"),
+    #                     unit = 'mm',
+    #                     zname = 'time',
+    #                     prec = "double",
+    #                     compression = 9,
+    #                     missval = -9876543210,
+    #                     overwrite = TRUE)
+    
+    # spPEToutputDir <- "Output/Data/PET/"
+    
+    
     terra::writeCDF(PET.rasBRK,
-                    filename = paste0(spPEToutputDir, "/",  out.file, "_",
+                    filename = paste0(out.dir, "/",  out.file, "_",
                                       Res, "_", method, "_", DateStart,"_T_",
                                       DateEnd, ".nc"),
                     varname = "PET",
@@ -504,7 +506,7 @@ app_server <- function(input, output, session) {
                     compression = 9,
                     missval = -9876543210,
                     overwrite = TRUE)
-
+    
     # output$download_single_qp_button <- renderUI({
     #   shinyWidgets::actionBttn(
     #     outputId = "qp_down_sin",
@@ -514,125 +516,125 @@ app_server <- function(input, output, session) {
     #     size = "lg",
     #     no_outline = FALSE)
     # })
-
+    
     output$downloadPETnc <- downloadHandler(
       filename <- function() {
-
-            paste0(spPEToutputDir, "/",  out.file, "_",
-                         Res, "_", method, "_", DateStart,"_T_",
-                         DateEnd, ".nc")
+        
+        paste0(spPEToutputDir, "/",  out.file, "_",
+               Res, "_", method, "_", DateStart,"_T_",
+               DateEnd, ".nc")
       },
-
+      
       content <- function(file) {
         file.copy(filename(), file)
       },
       contentType = NULL
     )
-
-
+    
+    
     shinyWidgets::closeSweetAlert(session = session)
     shinyWidgets::sendSweetAlert(
       session = session,
       title =" Calculation completed !",
       type = "success"
     )
-
+    
     PET.rasBRK
-
+    
   })
-
-
+  
+  
   output$spPETmap =  leaflet::renderLeaflet({
-
+    
     leaflet::leaflet() %>%
       mapboxapi::addMapboxTiles(style_id = "satellite-streets-v12", username = "mapbox",
                                 access_token = "pk.eyJ1Ijoicm9iZWx0YWtlbGUiLCJhIjoiY2xkb2o4NmRtMDEzcjNubHBkenMycnhiaSJ9.UkdfagqGIy7WjMGXtlT1mQ") %>%
-
+      
       leaflet.multiopacity::addOpacityControls(group = "PETlayers",
                                                collapsed = FALSE,
                                                position = "bottomleft",
                                                size = "m",
                                                title = "PET Opacity Control:",
                                                renderOnLayerAdd = TRUE) %>%
-
+      
       leaflet::addMiniMap(position = "bottomright",
                           width = 150,
                           height = 150) %>%
       leaflet::setView(lng = 38, lat = -14, zoom = 4)
   })
-
-
+  
+  
   spPETmapLeaf <- observeEvent(input$PETsp_runButton, {
-
+    
     PET.mapDat <- PETspNetCDF()
     PET.mapDat <- raster::brick(PET.mapDat)
     PET.mapDat.nms <- names(PET.mapDat)
     PET.mapDat.nms.dateVec <- lubridate::as_date(paste0(substr(PET.mapDat.nms, 2, 5), "-",
                                                         substr(PET.mapDat.nms, 7, 8), "-", substr(PET.mapDat.nms, 10, 11)))
     PETmap.index <- 1
-
+    
     PET.map_leaflet <- leaflet::projectRasterForLeaflet(PET.mapDat[[PETmap.index]], method = "bilinear")
-
+    
     PETcolorPal <- leaflet::colorNumeric(c("#9E0142","#D0384D","#EE6445","#FA9C58","#FDCD7B","#FEF0A7","#F3FAAD","#D0EC9C","#98D5A4","#5CB7A9","#3682BA","#5E4FA2"),
                                          raster::values( PET.map_leaflet),
                                          na.color = "transparent")
-
+    
     leaflet::leafletProxy("spPETmap", session) %>%
-
+      
       leaflet::addRasterImage(PET.map_leaflet, colors =  PETcolorPal, opacity = 0.8,
                               group = "PETlayers", layerId = "PETlayers") %>%
-
+      
       leaflet::addLegend(pal = PETcolorPal, values = raster::values(PET.map_leaflet), opacity = 1,
                          title = "PET (mm)", position = "topright")
-
+    
   })
-
-
+  
+  
   observeEvent(input$spPET_method, {
-
+    
     spPETmetdNamIndex <- which((spPETmetNamS) == as.character(input$spPET_method))
-
+    
     output$spPETmapTitle <- renderText({paste0(spPETmetNam[spPETmetdNamIndex],
                                                " Potential Evapotranspiration (PET): ",
                                                paste(input$year))})
   })
-
+  
   observeEvent(input$year,{
-
+    
     PET.mapDat <- PETspNetCDF()
     PET.mapDat <- raster::brick(PET.mapDat)
     DateStart = lubridate::as_date(input$spPET_DateStart)
     DateEnd = lubridate::as_date(input$spPET_DateEnd)
-
+    
     date.vec <- seq.Date(from = lubridate::as_date(DateStart), to = lubridate::as_date(DateEnd), by = "day")
-
+    
     PETmap.index <- as.numeric(which(date.vec == lubridate::as_date(input$year)))    #1
-
+    
     PET.map_leaflet <- leaflet::projectRasterForLeaflet(PET.mapDat[[PETmap.index]], method = "bilinear")
-
+    
     PETcolorPal <- leaflet::colorNumeric(c("#9E0142","#D0384D","#EE6445","#FA9C58","#FDCD7B","#FEF0A7","#F3FAAD","#D0EC9C","#98D5A4","#5CB7A9","#3682BA","#5E4FA2"),
                                          raster::values( PET.map_leaflet),
                                          na.color = "transparent")
-
+    
     leaflet::leafletProxy("spPETmap", session) %>% leaflet::clearControls() %>%
-
+      
       leaflet::addRasterImage(PET.map_leaflet, colors =  PETcolorPal, opacity = 0.8,
                               group = "PETlayers", layerId = "PETlayers") %>%
-
+      
       leaflet::addLegend(pal = PETcolorPal, values = raster::values(PET.map_leaflet),
                          title = "PET (mm)", position = "topright",
                          group = "PETlayers", layerId = "PETlayers") %>%
-
+      
       leaflet.extras2::addEasyprint(options = leaflet.extras2::easyprintOptions(exportOnly = FALSE,
                                                                                 hidden = FALSE,
                                                                                 hideControlContainer = FALSE))
   })
-
+  
   observeEvent(input$print, {
     leaflet::leafletProxy("spPETmap", session) %>%
       leaflet.extras2::easyprintMap(sizeModes = input$scene, filename = input$spPETmapFileN)
   })
-
+  
   # ***** SWB
 
   SWB_dataInput <- reactive({
@@ -2117,37 +2119,37 @@ data.pet <- pet.ncData[[startdate.SWBindex:enddate.SWBindex]]
 ################################################################################
   ## ***** Seasonal forecast from sp
 
-
+  
   ncData.C1_dataInput <- reactive({
     req(input$C1.cdfInput)
     terra::rast(input$C1.cdfInput$datapath)
   })
-
+  
   ncData.C2_dataInput <- reactive({
     req(input$C2.cdfInput)
     terra::rast(input$C2.cdfInput$datapath)
   })
-
+  
   ncData.C3_dataInput <- reactive({
     req(input$C3.cdfInput)
     terra::rast(input$C3.cdfInput$datapath)
   })
-
-
+  
+  
   ncData.seasRAIN_dataInput <- reactive({
     req(input$seasRain.cdfInput)
     terra::rast(input$seasRain.cdfInput$datapath)
   })
-
-
+  
+  
   ncData.fcstVAR_dataInput <- reactive({
     req(input$fcstVAR.cdfInput)
     terra::rast(input$fcstVAR.cdfInput$datapath)
   })
-
-
+  
+  
   FCST_roots <- c(wd = '.', home = '~', shinyFiles::getVolumes()())
-
+  
   shinyFiles::shinyDirChoose(input, 'dirFCSTsp',
                              roots = FCST_roots,
                              #  defaultPath='~',
@@ -2156,172 +2158,172 @@ data.pet <- pet.ncData[[startdate.SWBindex:enddate.SWBindex]]
                              session = session,
                              filetypes = c(" ", "nc", "tif")
   )
-
+  
   global <- reactiveValues(FCST_dataPath = getwd())
-
+  
   output$dirFCSTsp <- renderPrint({
     global$FCST_dataPath
-
+    
   })
-
+  
   observeEvent(ignoreNULL = TRUE,
                eventExpr = {
                  input$dirFCSTsp
                },
-
+               
                handlerExpr = {
-
+                 
                  global$FCST_dataPath <- file.path(shinyFiles::parseDirPath(roots = FCST_roots,
-                                                                              input$dirFCSTsp),
-                                                     fsep = .Platform$file.sep)
-
+                                                                            input$dirFCSTsp),
+                                                   fsep = .Platform$file.sep)
+                 
                  output$dirFCSTsp <- renderPrint({
                    file.path(shinyFiles::parseDirPath(roots = FCST_roots,
                                                       input$dirFCSTsp),
                              fsep = .Platform$file.sep)
                  })
-
+                 
                })
-
-
-## ****************************************************************************
-
+  
+  
+  ## ****************************************************************************
+  
   FCSTspNetCDF <- eventReactive(input$fcst_runButton, {
-
+    
     shinyWidgets::progressSweetAlert(
       session = session, id = "FCSTprogress",
       title = h4(paste0(" Seasonal forecast is in Progress ....."),
                  style = "color: #FD1C03; font-style: bold; font-family: times;"),
       display_pct = TRUE, value = 0, striped = TRUE, width = '55%')
-
+    
     DateStart = lubridate::as_date(input$obsWSC_DateStart)
     DateEnd = lubridate::as_date(input$obsWSC_DateEnd)
-
+    
     estYears <- lubridate::year(DateStart) : lubridate::year(DateEnd)
-
+    
     fcstVAR.name <- as.character(spFCSTnames[as.numeric(input$FCSTvar.mapview)]) # input$FCSTvar
-
+    
     fcstYear = lubridate::year(lubridate::as_date(input$FCST_Date))
     fcstMonth = lubridate::month(lubridate::as_date(input$FCST_Date))
     fcstDay = lubridate::day(lubridate::as_date(input$FCST_Date))
-
+    
     C1.ncFile = ncData.C1_dataInput()
     C2.ncFile = ncData.C2_dataInput()
     C3.ncFile = ncData.C3_dataInput()
-
-   C1.ncFile[C1.ncFile < 0] <- NA
-   C2.ncFile[C2.ncFile < 0] <- NA
-   C3.ncFile[C3.ncFile < 0] <- NA
-
+    
+    C1.ncFile[C1.ncFile < 0] <- NA
+    C2.ncFile[C2.ncFile < 0] <- NA
+    C3.ncFile[C3.ncFile < 0] <- NA
+    
     ncFile.rain = ncData.seasRAIN_dataInput()
     rain.nms.date.vec <- lubridate::year(lubridate::as_date(terra::time(ncFile.rain)))
     startdate.index <- which(rain.nms.date.vec == lubridate::year(DateStart))
     enddate.index <- which(rain.nms.date.vec == lubridate::year(DateEnd))
     ncFile.rain <- ncFile.rain[[startdate.index:enddate.index]]
-
+    
     ncData.rain <- terra::crop(ncFile.rain, terra::ext(C1.ncFile))
     ncData.rain.r <- raster::brick(terra::resample(ncData.rain, C1.ncFile,
                                                    method = "bilinear"))
     ncData.rain.r <- raster::mask(ncData.rain.r, raster::brick(C1.ncFile))
     rain.SpGdF <- as(ncData.rain.r, "SpatialGridDataFrame")
-
+    
     ncFile.fcstVAR = ncData.fcstVAR_dataInput()
     fcstVAR.nms.date.vec <- lubridate::year(lubridate::as_date(terra::time(ncFile.fcstVAR)))
     startdate.index <- which(fcstVAR.nms.date.vec == lubridate::year(DateStart))
     enddate.index <- which(fcstVAR.nms.date.vec == lubridate::year(DateEnd))
     ncFile.fcstVAR <- ncFile.fcstVAR[[startdate.index:enddate.index]]
-
+    
     ncData.fcstVAR <- terra::crop(ncFile.fcstVAR, terra::ext(C1.ncFile))
     ncData.fcstVAR.r <- raster::brick(terra::resample(ncData.fcstVAR,
                                                       C1.ncFile,
                                                       method = "bilinear"))
     ncData.fcstVAR.r <- raster::mask(ncData.fcstVAR.r, raster::brick(C1.ncFile))
     fcstVAR.SpGdF <- as(ncData.fcstVAR.r, "SpatialGridDataFrame")
-
+    
     C1.SpGdF <- as(raster::brick(C1.ncFile), "SpatialGridDataFrame")
     C2.SpGdF <- as(raster::brick(C2.ncFile), "SpatialGridDataFrame")
     C3.SpGdF <- as(raster::brick(C3.ncFile), "SpatialGridDataFrame")
-
+    
     ncData.fcstVAR.r <- terra::rast(ncData.fcstVAR.r)
     fcstVAREnse.SpGdF <- C1.SpGdF
     fcstVAREnse.SpGdF@data <- data.frame(matrix(data = NA,
-                                              nrow = nrow(fcstVAREnse.SpGdF@data),
-                                              ncol = 3))
-
+                                                nrow = nrow(fcstVAREnse.SpGdF@data),
+                                                ncol = 3))
+    
     colnames(fcstVAREnse.SpGdF@data) <- c("BN", "NN", "AN")
-
+    
     rainTer.SpGdF <- C1.SpGdF
     rainTer.SpGdF@data$C1 <- C1.SpGdF@data[,1]
     rainTer.SpGdF@data$C2 <- C2.SpGdF@data[,1]
     rainTer.SpGdF@data$C3 <- C3.SpGdF@data[,1]
-
-  ## ***** resampling ensembles onset
-
+    
+    ## ***** resampling ensembles onset
+    
     for (grd in seq_along(C1.SpGdF@data[,1])) {
-
-  #   for (grd in seq_along(1:2000)) {
-
+      
+      #   for (grd in seq_along(1:2000)) {
+      
       sR.xy <- data.frame("Year" = estYears,
                           "sRain" = as.double(rain.SpGdF@data[grd, ]))
-
+      
       fcstVAR.xy <- data.frame(Year = estYears,
                                fcstVAR.val = as.double(fcstVAR.SpGdF@data[grd, ]))
-
+      
       if (fcstVAR.name == "onset") {
-
+        
         colnames(fcstVAR.xy) <- c("Year", "onset.Value")
-
+        
       } else {
-
+        
         colnames(fcstVAR.xy) <- c("Year", "cessation.Value")
-
+        
       }
-
+      
       rainTercile.xy <- data.frame(T1 = as.double(rainTer.SpGdF@data$C1[grd])/100,
                                    T2 = as.double(rainTer.SpGdF@data$C2[grd])/100,
                                    T3 = as.double(rainTer.SpGdF@data$C3[grd])/100)
-
+      
       if (length(which(is.na(sR.xy$sRain))) > round(length(sR.xy$sRain)*0.1) |
           length(which(is.na(fcstVAR.xy[,2]))) > round(length(fcstVAR.xy[,2])*0.4) |
           length(which(!is.na(rainTercile.xy))) < 3 ) {
-
+        
         fcstVAREnse.SpGdF@data[grd, ] <- fcstVAREnse.SpGdF@data[grd, ]
-
+        
       } else {
-
+        
         fcstVAREns.xy <- AquaBEHER::fcstWSC(sesRain = sR.xy,
-                                          var.dF = fcstVAR.xy,
-                                          rainTerc = rainTercile.xy,
-                                          variable = fcstVAR.name)
-
+                                            var.dF = fcstVAR.xy,
+                                            rainTerc = rainTercile.xy,
+                                            variable = fcstVAR.name)
+        
         fcstVAREnse.SpGdF@data[grd, ] <- fcstVAREns.xy
-
-     }
-
-  Sys.sleep(0.1)
-  shinyWidgets::updateProgressBar(
+        
+      }
+      
+      Sys.sleep(0.1)
+      shinyWidgets::updateProgressBar(
         session = session,
         id = "FCSTprogress",
         value = grd,
         total = nrow(C1.SpGdF@data))
-
-
+      
+      
     }
-
-
+    
+    
     fcstVAREnse.rasBRK <- terra::rast(fcstVAREnse.SpGdF)
-
-
+    
+    
     fcstYear = lubridate::year(lubridate::as_date(input$FCST_Date))
     fcstMonth = lubridate::month(lubridate::as_date(input$FCST_Date))
-
-
+    
+    
     outputFile.FCST.terC <-  paste0(global$FCST_dataPath, "/",
                                     input$spFCSToutFilePrefix, "_",
                                     as.character(spFCSTnames[as.numeric(input$FCSTvar.mapview)]), "_",
                                     fcstMonth, fcstYear, "_terProbs.nc")
-
-
+    
+    
     terra::writeCDF(x =  fcstVAREnse.rasBRK,
                     filename = outputFile.FCST.terC,
                     varname = paste0(as.character(spFCSTnames[as.numeric(input$FCSTvar.mapview)])),
@@ -2333,65 +2335,65 @@ data.pet <- pet.ncData[[startdate.SWBindex:enddate.SWBindex]]
                     missval = -9876543210,
                     atts = nc.att,
                     overwrite = TRUE)
-
-## ****************************************************************************
-  ## *** Debuging
-
-
-   # rast <- raster::brick(paste0("/home/robel/Downloads/test.nc"))
-   #  fcstVAREnse.SpGdF <- as(rast, "SpatialGridDataFrame")
-
-
+    
+    ## ****************************************************************************
+    ## *** Debuging
+    
+    
+    # rast <- raster::brick(paste0("/home/robel/Downloads/test.nc"))
+    #  fcstVAREnse.SpGdF <- as(rast, "SpatialGridDataFrame")
+    
+    
     fcstVAR.probTerc.spGdF <- fcstVAREnse.SpGdF
     fcstVAR.probTerc.spGdF@data <- data.frame(matrix(NA, nrow = nrow(fcstVAREnse.SpGdF@data),
-                                                 ncol = 1))
-
+                                                     ncol = 1))
+    
     for (grd in seq_along(fcstVAR.probTerc.spGdF@data[,1])) {
-
+      
       terMax <- NA
       probTerc.grd <- NA
-
-     # terCount <- table(as.numeric(onsetEnse.SpGdF@data[grd, ]))
+      
+      # terCount <- table(as.numeric(onsetEnse.SpGdF@data[grd, ]))
       terVec <- as.numeric(fcstVAREnse.SpGdF@data[grd, ])
-     # terMax <- as.numeric(which(terCount == max(terCount))[1])
-
+      # terMax <- as.numeric(which(terCount == max(terCount))[1])
+      
       if (!is.na(terVec[1])) {
         terMax <- as.numeric(which.max(terVec))
         probTerc.grd <- round(terVec[terMax], digits = 2)
-        }
-
+      }
+      
       if (!is.na(terMax) & terMax == 2) {
         probTerc.grd <- 0
       } else if (!is.na(terMax) & terMax == 1) {
         probTerc.grd <- (-1)* probTerc.grd
       }
-
+      
       fcstVAR.probTerc.spGdF@data[grd,] <- probTerc.grd
-
+      
     }
-
+    
     fcstVAR.probTerc.rast <- terra::rast(fcstVAR.probTerc.spGdF)
-
+    
     terra::time(fcstVAR.probTerc.rast) <-  lubridate::as_date(paste0(fcstYear, "-",
                                                                      fcstMonth, "-",
                                                                      fcstDay))
-
-
+    
+    
     probTerc.noisy.raster <- raster::raster(fcstVAR.probTerc.rast)
-
+    
     # Define the size of the median filter kernel (adjust as needed)
     filter_size <- c(3, 3)  # Adjust the size as needed
-
+    
     # Apply the median filter to smooth the raster data
     probTerc.smooth.raster <- focal(probTerc.noisy.raster, w = matrix(1, nrow = filter_size[1], ncol = filter_size[2]),
-                             fun = median, na.rm = TRUE)
-
-
+                                    fun = median, na.rm = TRUE)
+    
+    
     outputFile.FCST.MstRerC <-  paste0(global$FCST_dataPath, "/",
                                        input$spFCSToutFilePrefix, "_",
                                        as.character(spFCSTnames[as.numeric(input$FCSTvar.mapview)]), "_",
                                        fcstMonth, fcstYear, "_mostLikely_terProbs.nc")
-
+    
     terra::writeCDF(terra::rast(probTerc.smooth.raster),
                     filename = outputFile.FCST.MstRerC,
                     varname = paste0(as.character(spFCSTnames[as.numeric(input$FCSTvar.mapview)]),
@@ -2406,96 +2408,103 @@ data.pet <- pet.ncData[[startdate.SWBindex:enddate.SWBindex]]
                     missval = -9876543210,
                     atts = nc.att,
                     overwrite = TRUE)
-
-
-  shinyWidgets::closeSweetAlert(session = session)
-  shinyWidgets::sendSweetAlert(
+    
+    
+    shinyWidgets::closeSweetAlert(session = session)
+    shinyWidgets::sendSweetAlert(
       session = session,
       title =" Forecast completed !",
       type = "success"
     )
-
-  probTerc.smooth.raster
-
+    
+    probTerc.smooth.raster
+    
   } )
-
-
+  
+  
   output$FCSTmap =  leaflet::renderLeaflet({
-
+    
     leaflet::leaflet() %>%
       mapboxapi::addMapboxTiles(style_id = "satellite-streets-v12", username = "mapbox",
                                 access_token = "pk.eyJ1Ijoicm9iZWx0YWtlbGUiLCJhIjoiY2xkb2o4NmRtMDEzcjNubHBkenMycnhiaSJ9.UkdfagqGIy7WjMGXtlT1mQ") %>%
-
+      
       leaflet.multiopacity::addOpacityControls(group = "FCSTlayers",
                                                collapsed = FALSE,
                                                position = "bottomleft",
                                                size = "m",
                                                #  title = "PET Opacity Control:",
                                                renderOnLayerAdd = TRUE) %>%
-
+      
       leaflet::addMiniMap(position = "bottomright",
                           width = 150,
                           height = 150) %>%
       leaflet::setView(lng = 38, lat = -14, zoom = 4)
   })
-
-
-
+  
+  
+  
   FCSTmap.eventTrigger <- reactive({
     list(input$FCSTvar.mapview, input$FCST_Date)
   })
-
-
- # observeEvent(input$FCSTvar, {
-
+  
+  
+  # observeEvent(input$FCSTvar, {
+  
   #  spFCSTNamIndex <- which((spFCSTnames) == as.character(input$FCSTvar.mapview))
-
-    output$FCSTmapTitle <- renderText({paste0("Seasonal Forecast : ",
-                                              as.character(spFCSTnames[as.numeric(input$FCSTvar.mapview)]))})
-
-    # output$FCSTmapTitle <- renderText({paste0("Seasonal Forecast : ",
-    #                                           as.character(spFCSTnames[as.numeric(spFCSTNamIndex)]))})
- # })
-
-
+  
+  output$FCSTmapTitle <- renderText({paste0("Seasonal Forecast : ",
+                                            as.character(spFCSTnames[as.numeric(input$FCSTvar.mapview)]))})
+  
+  # output$FCSTmapTitle <- renderText({paste0("Seasonal Forecast : ",
+  #                                           as.character(spFCSTnames[as.numeric(spFCSTNamIndex)]))})
+  # })
+  
+  
   observeEvent(input$fcst_runButton, {
-
-  FCSTmap.Dat <- FCSTspNetCDF()
-  FCSTmap.mapDat <- raster::brick(FCSTmap.Dat)
-
-  FCSTmap.leaflet <- leaflet::projectRasterForLeaflet(FCSTmap.mapDat,
-                                                      method = "bilinear")
-
-  colPal <- c("#3288BD", "#66C2A5", "#ABDDA4", "#E6F598", "#FFFFBF",
-              "#FEE08B", "#FDAE61", "#F46D43", "#D53E4F")
-
-  FCSTmap.colorPal <- leaflet::colorNumeric(colPal, raster::values(FCSTmap.leaflet),
-                                             na.color = "transparent")
-
-  leaflet::leafletProxy("FCSTmap", session) %>%
-
-    leaflet::addRasterImage(FCSTmap.leaflet, colors = FCSTmap.colorPal,
-                            opacity = 0.8)  %>%
-
-    leaflet::addLegend(pal = FCSTmap.colorPal,
-                       values = values(FCSTmap.leaflet),
-                     title = "Probability") %>%
-
-    leaflet.extras2::addEasyprint(options = leaflet.extras2::easyprintOptions(exportOnly = FALSE,
-                                                                              hidden = FALSE,
-                                                                              hideControlContainer = FALSE))
-
+    
+    FCSTmap.Dat <- FCSTspNetCDF()
+    FCSTmap.mapDat <- raster::brick(FCSTmap.Dat)
+    
+    FCSTmap.leaflet <- leaflet::projectRasterForLeaflet(FCSTmap.mapDat,
+                                                        method = "bilinear")
+    
+    colPal <- c("#3288BD", "#66C2A5", "#ABDDA4", "#E6F598", "#FFFFBF",
+                "#FEE08B", "#FDAE61", "#F46D43", "#D53E4F")
+    
+    FCSTmap.colorPal <- leaflet::colorNumeric(colPal, raster::values(FCSTmap.leaflet),
+                                              na.color = "transparent")
+    
+    leaflet::leafletProxy("FCSTmap", session) %>%
+      
+      leaflet::addRasterImage(FCSTmap.leaflet, colors = FCSTmap.colorPal,
+                              opacity = 0.8)  %>%
+      
+      leaflet::addLegend(pal = FCSTmap.colorPal,
+                         values = values(FCSTmap.leaflet),
+                         title = "Probability") %>%
+      
+      leaflet.extras2::addEasyprint(options = leaflet.extras2::easyprintOptions(exportOnly = FALSE,
+                                                                                hidden = FALSE,
+                                                                                hideControlContainer = FALSE))
+    
   } )
-
+  
   observeEvent(input$printFCSTmap, {
     leaflet::leafletProxy("FCSTmap", session) %>%
       leaflet.extras2::easyprintMap(sizeModes = input$scene, filename = input$FCSTmapFileN)
   })
-
-
- # Automatically stop the shiny app when closing the browser tab
-
- # session$onSessionEnded(stopApp)
-
+  
+  
+  
+  
+  ############################################################################################################
+  ############################################################################################################
+  # Automatically stop the shiny app when closing the browser tab
+  
+  # session$onSessionEnded(stopApp)
+  
 }
 
+############################################################################################################
+############################################################################################################
+############################################################################################################
