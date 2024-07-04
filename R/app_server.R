@@ -6,6 +6,7 @@
 #' @importFrom methods as
 #' @importFrom leaflet.extras2 addEasyprint easyprintOptions easyprintMap
 #' @importFrom lubridate as_date
+#' @importFrom stats median
 #' @importFrom terra time writeCDF rast
 #' @importFrom raster brick extent crs resample values
 #' @noRd
@@ -516,20 +517,20 @@ app_server <- function(input, output, session) {
     #     size = "lg",
     #     no_outline = FALSE)
     # })
-    
-    output$downloadPETnc <- downloadHandler(
-      filename <- function() {
-        
-        paste0(spPEToutputDir, "/",  out.file, "_",
-               Res, "_", method, "_", DateStart,"_T_",
-               DateEnd, ".nc")
-      },
-      
-      content <- function(file) {
-        file.copy(filename(), file)
-      },
-      contentType = NULL
-    )
+    # 
+    # output$downloadPETnc <- downloadHandler(
+    #   filename <- function() {
+    #     
+    #     paste0(spPEToutputDir, "/",  out.file, "_",
+    #            Res, "_", method, "_", DateStart,"_T_",
+    #            DateEnd, ".nc")
+    #   },
+    #   
+    #   content <- function(file) {
+    #     file.copy(filename(), file)
+    #   },
+    #   contentType = NULL
+    # )
     
     
     shinyWidgets::closeSweetAlert(session = session)
@@ -2385,7 +2386,7 @@ data.pet <- pet.ncData[[startdate.SWBindex:enddate.SWBindex]]
     filter_size <- c(3, 3)  # Adjust the size as needed
     
     # Apply the median filter to smooth the raster data
-    probTerc.smooth.raster <- focal(probTerc.noisy.raster, w = matrix(1, nrow = filter_size[1], ncol = filter_size[2]),
+    probTerc.smooth.raster <- raster::focal(probTerc.noisy.raster, w = matrix(1, nrow = filter_size[1], ncol = filter_size[2]),
                                     fun = median, na.rm = TRUE)
     
     
